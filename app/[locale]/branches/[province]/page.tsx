@@ -10,10 +10,6 @@ interface Props {
   params: Promise<{ province: string; locale: string }>;
 }
 
-export function generateStaticParams() {
-  return branchData.map((province) => ({ province: province.id }));
-}
-
 export default async function ProvincePage({ params }: Props) {
   const { province: provinceId, locale = "en" } = await params;
   const resolvedLocale = (locale === "ne" ? "ne" : "en") as "en" | "ne";

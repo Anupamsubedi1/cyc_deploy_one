@@ -15,6 +15,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // isomorphic-dompurify pulls in jsdom for server-side sanitization; bundling
+  // it into the serverless function breaks on Vercel, so keep it external and
+  // let output file tracing include it from node_modules.
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
   images: {
     remotePatterns: [
       {
