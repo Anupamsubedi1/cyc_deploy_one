@@ -32,6 +32,7 @@ export default function HeroCarousel({
 }: HeroCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [now, setNow] = useState<Date | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -52,6 +53,14 @@ export default function HeroCarousel({
       window.clearInterval(interval);
     };
   }, []);
+
+  // If the first slide has no image, reveal content immediately
+  useEffect(() => {
+    const firstSlide = slides[0];
+    if (!firstSlide?.imageUrl || !firstSlide.imageUrl.trim()) {
+      setImageLoaded(true);
+    }
+  }, [slides]);
 
   if (slides.length === 0) {
     return null;
@@ -83,6 +92,7 @@ export default function HeroCarousel({
               priority={index === 0}
               loading="eager"
               unoptimized
+              onLoad={index === 0 ? () => setImageLoaded(true) : undefined}
             />
           )}
 
@@ -90,7 +100,7 @@ export default function HeroCarousel({
 
 
 
-<div className="absolute inset-0 flex flex-col items-center justify-end text-white px-4 pb-6 pt-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10">
+<div className={`absolute inset-0 flex flex-col items-center justify-end text-white px-4 pb-6 pt-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10 transition-opacity duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
               <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-3 sm:mb-4 text-center leading-tight">
                 {title}
               </h1>
@@ -105,7 +115,7 @@ export default function HeroCarousel({
         );
       })}
 
-      <div className="absolute right-3 top-3 z-20 inline-flex items-stretch overflow-hidden rounded-sm border border-white/55 bg-mint text-black sm:right-5 sm:top-5">
+      <div className={`absolute right-3 top-3 z-20 inline-flex items-stretch overflow-hidden rounded-sm border border-white/55 bg-mint text-black sm:right-5 sm:top-5 transition-opacity duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
         <div className="inline-flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-1.5">
           <svg
             className="h-4 w-4"
@@ -146,7 +156,7 @@ export default function HeroCarousel({
       </div>
 
       {slides.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-6 sm:gap-2">
+        <div className={`absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-6 sm:gap-2 transition-opacity duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
           {slides.map((_, index) => (
             <button
               key={`dot-${index}`}
