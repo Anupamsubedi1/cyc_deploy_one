@@ -1,45 +1,66 @@
-// ⚠️ TEMPORARY DIAGNOSTIC VERSION — surfaces the real sanitizer error in the
-// rendered HTML (instead of a masked 500) so we can read it from production via
-// curl. Revert to the clean import-based version once the cause is confirmed.
+import sanitizeHtml from "sanitize-html";
 
-type Purifier = { sanitize: (html: string, opts?: unknown) => string };
-
-let purifier: Purifier | null = null;
-let loadError = "";
-
-try {
-  // Lazy require so a module-load/native-dep failure on Vercel is captured here
-  // rather than crashing the whole route's module evaluation.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const mod = require("isomorphic-dompurify");
-  const candidate = (mod && mod.default) || mod;
-  if (candidate && typeof candidate.sanitize === "function") {
-    purifier = candidate as Purifier;
-  } else {
-    loadError = `LOAD: module shape unexpected: keys=${Object.keys(mod || {}).join(",")}`;
-  }
-} catch (e) {
-  const err = e as Error;
-  loadError = `LOAD: ${err?.message} :: ${(err?.stack || "").split("\n").slice(0, 4).join(" | ")}`;
-}
+/**
+ * Sanitizes rich-text HTML (produced by the TipTap editor / stored CMS content)
+ * before it is rendered via `dangerouslySetInnerHTML`.
+ *
+ * This is the single defense against **stored XSS** in CMS content: the admin
+ * editor only constrains input on the client, so a crafted `POST` to an admin
+ * content API could otherwise persist `<script>` / `onerror=` / `javascript:`
+ * payloads that execute on public pages and in other admins' browsers.
+ *
+ * Uses `sanitize-html` (pure JS, no jsdom) so it runs identically in Node
+ * serverless functions and the browser. It strips scripts, event-handler
+ * attributes and dangerous URL schemes while preserving the formatting tags the
+ * editor emits (headings, lists, bold/italic, links, tables, images, etc.).
+ * Every `dangerouslySetInnerHTML` sink that renders user/CMS-authored HTML MUST
+ * pass through this function.
+ */
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "p", "br", "hr", "span", "div",
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "strong", "b", "em", "i", "u", "s", "strike", "del", "ins", "mark", "sub", "sup", "small",
+    "ul", "ol", "li",
+    "blockquote", "pre", "code",
+    "a", "img", "figure", "figcaption",
+    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption", "colgroup", "col",
+  ],
+  allowedAttributes: {
+    "*": ["class", "style", "id", "dir", "lang", "title"],
+    a: ["href", "name", "target", "rel"],
+    img: ["src", "alt", "title", "width", "height", "loading"],
+    td: ["colspan", "rowspan"],
+    th: ["colspan", "rowspan", "scope"],
+    col: ["span"],
+    ol: ["start", "type"],
+  },
+  // Only safe URL schemes survive; `javascript:`/`data:` (except images) are dropped.
+  allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowedSchemesByTag: { img: ["http", "https", "data"] },
+  allowProtocolRelative: true,
+  // Keep inline styles as authored (CMS content is admin-sourced); sanitize-html
+  // still escapes the values so `expression()`/url(javascript:) cannot break out.
+  allowedStyles: {},
+  transformTags: {
+    // Harden new-tab links against reverse-tabnabbing without dropping rel.
+    a: (tagName, attribs) => {
+      if (attribs.target === "_blank") {
+        attribs.rel = attribs.rel
+          ? Array.from(new Set([...attribs.rel.split(/\s+/), "noopener", "noreferrer"])).join(" ")
+          : "noopener noreferrer";
+      }
+      return { tagName, attribs };
+    },
+  },
+};
 
 export function sanitizeRichText(html?: string | null): string {
   if (!html) {
     return "";
   }
 
-  if (!purifier) {
-    return `[[RICHTEXT_ERROR ${loadError}]]`;
-  }
-
-  try {
-    return purifier.sanitize(html, {
-      ADD_ATTR: ["target", "rel"],
-    });
-  } catch (e) {
-    const err = e as Error;
-    return `[[RICHTEXT_ERROR RUNTIME: ${err?.message} :: ${(err?.stack || "").split("\n").slice(0, 4).join(" | ")}]]`;
-  }
+  return sanitizeHtml(html, SANITIZE_OPTIONS);
 }
 
 export function hasRichTextContent(value?: string | null) {
