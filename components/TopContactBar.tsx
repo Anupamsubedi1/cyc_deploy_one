@@ -312,12 +312,11 @@ export function TopContactBar() {
       <div className="sticky top-0 z-50 w-full border-b border-zinc-200/80 bg-white shadow-[0_8px_22px_rgba(7,100,110,0.12)]">
         <div className={`${row} min-h-16 lg:min-h-20 gap-2 sm:gap-4`}>
           {/*
-            min-w-0 + shrink lets the (very wide) logo give up space to the
+            min-w-0 + shrink lets the (very wide) logo give up width to the
             action cluster on narrow screens instead of pushing it past the
             viewport edge, where `overflow-x: hidden` (globals.css) would clip
-            it. The `!` height utilities are required because an unlayered
-            `img { height: auto }` reset in globals.css otherwise wins over
-            Tailwind's layered height utilities and balloons the logo.
+            it. The logo's own height utilities are left untouched so its size
+            on tablet/desktop is unchanged.
           */}
           <Link href={localizeHref("/")} className="flex min-w-0 shrink items-center py-2">
             <Image
@@ -326,7 +325,7 @@ export function TopContactBar() {
               width={200}
               height={60}
               priority
-              className="h-8! w-auto max-w-full object-contain sm:h-10! lg:h-14!"
+              className="h-8 w-auto sm:h-10 lg:h-14"
             />
           </Link>
 
@@ -519,7 +518,7 @@ export function TopContactBar() {
         >
           {/* Drawer header */}
           <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-            <Image src="/cyc-logo.jpg" alt="Logo" width={160} height={48} className="h-9! w-auto max-w-full object-contain" />
+            <Image src="/cyc-logo.jpg" alt="Logo" width={160} height={48} className="h-9 w-auto" />
             <button
               type="button"
               onClick={closeMenu}
