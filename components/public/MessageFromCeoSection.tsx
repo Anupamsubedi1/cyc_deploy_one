@@ -20,7 +20,7 @@ export function MessageFromCeoSection({
   const locale = useLocale();
   const t = useTranslations('Home');
 
-  const ceoName = "Dolendra Prasad Sharma";
+  const ceoName = "Radheshyam Shrestha";  // Replace with actual CEO name if available
   const ceoDesignation = "Chief Executive Officer";
   const sectionRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);

@@ -123,7 +123,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { status } = body;
+    const { status, rejectionReason } = body;
 
     if (!status) {
       return NextResponse.json(
@@ -140,8 +140,20 @@ export async function PUT(
       );
     }
 
+    // A rejection must include a reason, which is surfaced to the applicant.
+    const trimmedReason =
+      typeof rejectionReason === "string" ? rejectionReason.trim() : "";
+    if (status === "rejected" && !trimmedReason) {
+      return NextResponse.json(
+        { error: "A rejection reason is required when rejecting an application" },
+        { status: 400 },
+      );
+    }
+
     const updatedApplication = await updateApplication(applicationId, {
       status,
+      // Store the reason on rejection; clear any stale reason on other statuses.
+      rejectionReason: status === "rejected" ? trimmedReason : "",
     });
 
     return NextResponse.json(

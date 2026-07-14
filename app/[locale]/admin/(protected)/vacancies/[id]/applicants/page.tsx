@@ -38,6 +38,8 @@ export default function ApplicantsPage({ params }: ApplicantsPageProps): React.J
   const [vacancyId, setVacancyId] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [emailingAll, setEmailingAll] = useState(false);
+  const [emailAllMsg, setEmailAllMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     params.then(({ id }) => setVacancyId(id));
@@ -76,6 +78,48 @@ export default function ApplicantsPage({ params }: ApplicantsPageProps): React.J
     } catch (err) {
       console.error(err);
       alert("An error occurred");
+    }
+  };
+
+  const handleEmailAll = async () => {
+    if (emailingAll) return;
+    const decidedCount = applicants.filter(
+      (a) => a.status === "approved" || a.status === "selected" || a.status === "rejected",
+    ).length;
+    if (decidedCount === 0) {
+      setEmailAllMsg({
+        type: "err",
+        text: "No applicants have an accepted or rejected decision yet.",
+      });
+      return;
+    }
+    if (
+      !confirm(
+        `Send a decision email to ${decidedCount} applicant(s) who have been accepted or rejected? Rejected applicants will receive their rejection reason.`,
+      )
+    ) {
+      return;
+    }
+    setEmailingAll(true);
+    setEmailAllMsg(null);
+    try {
+      const res = await fetch(`/api/admin/vacancies/${vacancyId}/notify-all`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEmailAllMsg({ type: "err", text: data.error || "Failed to send emails" });
+        return;
+      }
+      const parts = [`${data.sent} sent`];
+      if (data.failed) parts.push(`${data.failed} failed`);
+      if (data.skipped) parts.push(`${data.skipped} skipped (no decision)`);
+      setEmailAllMsg({ type: "ok", text: parts.join(" · ") });
+    } catch (err) {
+      console.error(err);
+      setEmailAllMsg({ type: "err", text: "An error occurred while sending emails" });
+    } finally {
+      setEmailingAll(false);
     }
   };
 
@@ -141,6 +185,13 @@ export default function ApplicantsPage({ params }: ApplicantsPageProps): React.J
             <p className="text-sm text-slate-500">{vacancyTitle}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            <button
+              onClick={() => void handleEmailAll()}
+              disabled={emailingAll}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {emailingAll ? "Sending emails…" : "Email all applicants"}
+            </button>
             {hasShortlisted && (
               <Link
                 href={`/admin/vacancies/${vacancyId}/symbols`}
@@ -170,6 +221,24 @@ export default function ApplicantsPage({ params }: ApplicantsPageProps): React.J
         {error && (
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
+          </div>
+        )}
+
+        {emailAllMsg && (
+          <div
+            className={`mb-4 flex items-center justify-between gap-3 rounded-xl border p-4 text-sm ${
+              emailAllMsg.type === "ok"
+                ? "border-green-200 bg-green-50 text-green-700"
+                : "border-red-200 bg-red-50 text-red-700"
+            }`}
+          >
+            <span>{emailAllMsg.text}</span>
+            <button
+              onClick={() => setEmailAllMsg(null)}
+              className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold underline opacity-80 hover:opacity-100"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 

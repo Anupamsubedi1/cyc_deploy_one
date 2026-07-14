@@ -15,6 +15,10 @@ export default function ApplicationDetail({ params }: RouteParams) {
   const [appId, setAppId] = useState<string>("");
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -42,7 +46,7 @@ export default function ApplicationDetail({ params }: RouteParams) {
     void load();
   }, [params]);
 
-  const handleDecision = async (decision: "approved" | "rejected") => {
+  const handleDecision = async (decision: "approved" | "rejected", reason?: string) => {
     if (!appId || actionLoading) return;
     setActionLoading(true);
     setActionError("");
@@ -50,19 +54,63 @@ export default function ApplicationDetail({ params }: RouteParams) {
       const res = await fetch(`/api/admin/applications/${appId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: decision }),
+        body: JSON.stringify({ status: decision, rejectionReason: reason }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to update status");
-        return;
+        return false;
       }
-      setApplication((prev: any) => (prev ? { ...prev, status: decision } : prev));
+      setApplication((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              status: decision,
+              rejectionReason: decision === "rejected" ? (reason || "") : "",
+            }
+          : prev,
+      );
+      return true;
     } catch (err) {
       console.error(err);
       setActionError("An error occurred");
+      return false;
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    const reason = rejectReason.trim();
+    if (!reason) {
+      setActionError("Please enter a reason for rejection.");
+      return;
+    }
+    const ok = await handleDecision("rejected", reason);
+    if (ok) {
+      setShowRejectModal(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!appId || emailSending) return;
+    setEmailSending(true);
+    setEmailMsg(null);
+    try {
+      const res = await fetch(`/api/admin/applications/${appId}/notify`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEmailMsg({ type: "err", text: data.error || "Failed to send email" });
+        return;
+      }
+      setEmailMsg({ type: "ok", text: data.message || "Email sent" });
+    } catch (err) {
+      console.error(err);
+      setEmailMsg({ type: "err", text: "An error occurred while sending the email" });
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -491,6 +539,39 @@ export default function ApplicationDetail({ params }: RouteParams) {
                   : "Pending review"}
               </span>
             </p>
+
+            {/* Existing rejection reason */}
+            {application.status === "rejected" && application.rejectionReason && (
+              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="mb-1 text-xs font-bold uppercase tracking-widest text-red-500">
+                      Rejection Reason
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm text-red-800">
+                      {application.rejectionReason}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => void handleSendEmail()}
+                    disabled={emailSending}
+                    className="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {emailSending ? "Sending…" : "Send Email"}
+                  </button>
+                </div>
+                {emailMsg && (
+                  <p
+                    className={`mt-3 text-sm ${
+                      emailMsg.type === "ok" ? "text-green-700" : "text-red-600"
+                    }`}
+                  >
+                    {emailMsg.text}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => void handleDecision("approved")}
@@ -504,7 +585,11 @@ export default function ApplicationDetail({ params }: RouteParams) {
                 {actionLoading ? "Updating..." : application.status === "approved" ? "✓ Approved" : "Approve"}
               </button>
               <button
-                onClick={() => void handleDecision("rejected")}
+                onClick={() => {
+                  setActionError("");
+                  setRejectReason(application.rejectionReason || "");
+                  setShowRejectModal(true);
+                }}
                 disabled={actionLoading || application.status === "rejected"}
                 className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition ${
                   application.status === "rejected"
@@ -515,10 +600,55 @@ export default function ApplicationDetail({ params }: RouteParams) {
                 {actionLoading ? "Updating..." : application.status === "rejected" ? "✗ Disapproved" : "Disapprove"}
               </button>
             </div>
-            {actionError && <p className="mt-3 text-sm text-red-600">{actionError}</p>}
+            {actionError && !showRejectModal && <p className="mt-3 text-sm text-red-600">{actionError}</p>}
           </div>
         </div>
       </div>
+
+      {/* Rejection reason modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <h3 className="text-base font-bold text-slate-900">Reject Application</h3>
+              <p className="mt-0.5 text-sm text-slate-500">
+                Tell the applicant why their application is being rejected. This reason will be shown
+                on their dashboard.
+              </p>
+            </div>
+            <div className="p-5">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Reason for rejection
+              </label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={4}
+                autoFocus
+                placeholder="e.g. The submitted documents were incomplete or did not meet the eligibility criteria."
+                className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+              />
+              {actionError && <p className="mt-2 text-sm text-red-600">{actionError}</p>}
+            </div>
+            <div className="flex justify-end gap-3 border-t border-slate-100 px-5 py-4">
+              <button
+                onClick={() => setShowRejectModal(false)}
+                disabled={actionLoading}
+                className="rounded-xl border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void handleConfirmReject()}
+                disabled={actionLoading || !rejectReason.trim()}
+                className="rounded-xl bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {actionLoading ? "Rejecting..." : "Confirm Rejection"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

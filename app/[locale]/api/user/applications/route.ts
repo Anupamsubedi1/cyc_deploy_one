@@ -66,6 +66,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
            department: vacancy?.department || "",
            applicationFee: vacancy?.applicationFee || 100,
            status: app.status,
+           rejectionReason: app.rejectionReason || "",
            createdAt: app.createdAt,
            hasAdmitCardPdf: Boolean(app.pdfCloudinaryPublicId),
            paymentStatus: paymentStatus,

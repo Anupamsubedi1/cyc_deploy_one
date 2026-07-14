@@ -81,6 +81,7 @@ interface ApplicationItem {
   department: string;
   applicationFee: number;
   status: "payment_pending" | "submitted" | "reviewed" | "selected" | "approved" | "rejected";
+  rejectionReason: string;
   createdAt: string;
   hasAdmitCardPdf: boolean;
   paymentStatus: string;
@@ -456,6 +457,22 @@ function ApplicationCard({
       </div>
 
       <div className="p-5 sm:p-6">
+        {/* Rejection reason — shown to the applicant when an admin rejects */}
+        {app.status === "rejected" && app.rejectionReason && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-red-700">
+              <CircleX className="h-4 w-4 shrink-0" />
+              Application rejected
+            </div>
+            <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-red-400">
+              Reason
+            </p>
+            <p className="mt-0.5 whitespace-pre-wrap text-sm text-red-800">
+              {app.rejectionReason}
+            </p>
+          </div>
+        )}
+
         {/* Payment pending — not paid */}
         {needsPayment && (
           <div>

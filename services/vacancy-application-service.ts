@@ -26,6 +26,8 @@ export interface VacancyApplication {
   userPhone: string;
   responses: ApplicationResponse[];
   status: ApplicationStatus;
+  /** Reason an admin gave when rejecting the application; shown to the applicant. */
+  rejectionReason?: string;
   pdfCloudinaryPublicId?: string;
   payment?: string;
   /** Cloudinary URL of the candidate photo, lifted from responses[] for quick access. */

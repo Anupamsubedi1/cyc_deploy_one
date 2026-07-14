@@ -77,6 +77,66 @@ export async function sendGunasEmail(payload: GunasEmailPayload) {
   });
 }
 
+const COMPANY_NAME = "CYC Nepal Laghubitta Bittiya Sanstha Ltd.";
+
+export interface ApplicationStatusEmailPayload {
+  to: string;
+  applicantName: string;
+  vacancyTitle: string;
+  /** Application status — "rejected" produces the rejection email; anything else is treated as accepted. */
+  status: string;
+  /** Reason shown to the applicant when the application is rejected. */
+  rejectionReason?: string;
+}
+
+/**
+ * Notifies an applicant that their application has been accepted or rejected.
+ * Rejection emails include the admin-provided reason.
+ */
+export async function sendApplicationStatusEmail(payload: ApplicationStatusEmailPayload) {
+  const transporter = createTransporter();
+  const isRejected = payload.status === "rejected";
+  const name = payload.applicantName?.trim() || "Applicant";
+  const title = payload.vacancyTitle?.trim() || "the position";
+
+  const subject = isRejected
+    ? `Your application for "${title}" was not successful`
+    : `Your application for "${title}" has been accepted`;
+
+  const reasonBlock =
+    isRejected && payload.rejectionReason?.trim()
+      ? `
+        <h3 style="color:#b91c1c;margin-top:24px;margin-bottom:8px">Reason for rejection</h3>
+        <div style="background:#fef2f2;padding:16px;border-left:4px solid #dc2626;white-space:pre-wrap;color:#7f1d1d">${escHtml(
+          payload.rejectionReason.trim(),
+        )}</div>`
+      : "";
+
+  const message = isRejected
+    ? `We regret to inform you that your application for <strong>${escHtml(
+        title,
+      )}</strong> has not been successful at this time.`
+    : `We are pleased to inform you that your application for <strong>${escHtml(
+        title,
+      )}</strong> has been accepted. Our team will contact you with the next steps.`;
+
+  await transporter.sendMail({
+    from: `"${COMPANY_NAME}" <${process.env.SMTP_USER}>`,
+    to: payload.to,
+    subject,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1f2937">
+        <h2 style="color:#005d59">${escHtml(COMPANY_NAME)}</h2>
+        <p>Dear ${escHtml(name)},</p>
+        <p>${message}</p>
+        ${reasonBlock}
+        <p style="margin-top:24px">You can review your application status anytime by logging in to your dashboard.</p>
+        <p style="margin-top:24px;color:#6b7280;font-size:13px">Regards,<br/>${escHtml(COMPANY_NAME)}</p>
+      </div>
+    `,
+  });
+}
+
 function escHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
