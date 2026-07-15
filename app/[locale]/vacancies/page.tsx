@@ -79,7 +79,19 @@ export default function VacanciesPage(): React.JSX.Element {
 
   const locale = typeof params.locale === "string" ? params.locale : "ne";
 
+  // A vacancy is hidden once its application deadline has passed. The deadline is
+  // treated as valid through the end of that calendar day, so a vacancy due "today"
+  // stays visible until midnight. Vacancies without a deadline never expire.
+  const isDeadlinePassed = (deadline?: Date | string): boolean => {
+    if (!deadline) return false;
+    const due = new Date(deadline);
+    if (Number.isNaN(due.getTime())) return false;
+    due.setHours(23, 59, 59, 999);
+    return due.getTime() < Date.now();
+  };
+
   const tabVacancies: VacancyRow[] = vacancies
+    .filter((vacancy) => !isDeadlinePassed(vacancy.applicationDeadline))
     .map((vacancy) => ({
       id: String(vacancy._id || ""),
       title: language === "en" ? vacancy.titleEn : vacancy.titleNp,
@@ -175,7 +187,8 @@ export default function VacanciesPage(): React.JSX.Element {
             ))}
           </div>
 
-          <div className="overflow-x-hidden">
+          {/* Desktop: full table view (lg and up) */}
+          <div className="hidden overflow-x-auto lg:block">
             <table className="w-full table-fixed border-collapse text-sm">
               <thead>
                 <tr className="border-b border-[#d6e6ed] bg-white text-left">
@@ -205,7 +218,7 @@ export default function VacanciesPage(): React.JSX.Element {
 
               <tbody>
                 {
-                  (tabVacancies.length === 0)
+                  (filtered.length === 0)
                     ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-10 text-center text-slate-500">
@@ -253,15 +266,110 @@ export default function VacanciesPage(): React.JSX.Element {
                         </tr>
                       ))
                 }
-
-                    <VacancyDetailsDrawer
-                      vacancyId={detailsVacancyId}
-                      isOpen={Boolean(detailsVacancyId)}
-                      onClose={() => setDetailsVacancyId(null)}
-                    />
               </tbody>
             </table>
           </div>
+
+          {/* Mobile & tablet: filters + card view (below lg) */}
+          <div className="lg:hidden">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input
+                aria-label="filter-position"
+                type="text"
+                placeholder={t("vacancy.position")}
+                value={filterPosition}
+                onChange={(e) => setFilterPosition(e.target.value)}
+                className="w-full rounded border border-[#cfdfe6] px-3 py-2 text-sm outline-none focus:border-[#0d837f]"
+              />
+              <input
+                aria-label="filter-type"
+                type="text"
+                placeholder={t("vacancy.type")}
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full rounded border border-[#cfdfe6] px-3 py-2 text-sm outline-none focus:border-[#0d837f]"
+              />
+              <input
+                aria-label="filter-published"
+                type="text"
+                placeholder={t("vacancy.publishedDate")}
+                value={filterPublished}
+                onChange={(e) => setFilterPublished(e.target.value)}
+                className="w-full rounded border border-[#cfdfe6] px-3 py-2 text-sm outline-none focus:border-[#0d837f]"
+              />
+              <input
+                aria-label="filter-deadline"
+                type="text"
+                placeholder={t("vacancy.deadline")}
+                value={filterDeadline}
+                onChange={(e) => setFilterDeadline(e.target.value)}
+                className="w-full rounded border border-[#cfdfe6] px-3 py-2 text-sm outline-none focus:border-[#0d837f]"
+              />
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {filtered.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-[#d6e6ed] px-4 py-10 text-center text-slate-500">
+                  {t("vacancy.noVacancies")}
+                </p>
+              ) : (
+                filtered.map((vacancy) => (
+                  <div key={vacancy.id} className="rounded-lg border border-[#e2edf1] bg-white p-4 shadow-sm">
+                    <h3 className="text-base font-bold text-[#123451]">{vacancy.title}</h3>
+
+                    <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("vacancy.publishedDate")}</p>
+                        <p className="mt-0.5 font-medium text-slate-700">{vacancy.publishedDateAD}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("vacancy.deadline")}</p>
+                        <p className="mt-0.5 font-medium text-slate-700">{vacancy.deadlineAD || "-"}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("vacancy.type")}</p>
+                        <p className="mt-0.5 font-medium text-slate-700">{vacancy.type}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                      {isLoggedIn ? (
+                        <button
+                          onClick={() => handleApplyClick(vacancy.id)}
+                          className="inline-flex flex-1 items-center justify-center rounded bg-[#0d837f] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#08716e]"
+                        >
+                          {t("vacancy.applyNow")}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            const next = `/vacancies/${vacancy.id}/apply`;
+                            router.push(`/${locale}/login?next=${encodeURIComponent(next)}`);
+                          }}
+                          className="inline-flex flex-1 items-center justify-center rounded bg-[#0d837f] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#08716e]"
+                        >
+                          {t("vacancy.loginToApply")}
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleViewDetailsClick(vacancy.id)}
+                        className="inline-flex flex-1 items-center justify-center rounded bg-[#0a6b68] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#085856]"
+                      >
+                        {t("vacancy.viewDetails")}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <VacancyDetailsDrawer
+            vacancyId={detailsVacancyId}
+            isOpen={Boolean(detailsVacancyId)}
+            onClose={() => setDetailsVacancyId(null)}
+          />
         </div>
       </section>
 

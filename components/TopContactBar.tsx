@@ -12,7 +12,7 @@ import { withLocalePath } from "@/lib/localized-path";
 
 type AuthUser = { id?: string; fullName?: string; email?: string };
 
-type ContactItem = { text: string; link: string; };
+type ContactItem = { text: string; textNe?: string; link: string; };
 type PublicContactDetails = {
   phone: ContactItem; email: ContactItem; facebook: ContactItem;
   whatsapp: ContactItem; location: ContactItem; isActive: boolean;
@@ -220,9 +220,15 @@ export function TopContactBar() {
     loadingBar.complete();
   };
 
-  const phoneText = contact?.phone.text?.trim() || "+977-1-1234567";
+  // Prefer the admin-set Nepali display text on the Nepali site, falling back to
+  // the English text (and finally a hard-coded default) so an admin edit shows up
+  // regardless of which language field they filled in.
+  const isNepaliLocale = currentLocale === "ne";
+  const phoneText =
+    (isNepaliLocale ? contact?.phone.textNe?.trim() : "") || contact?.phone.text?.trim() || "+977-1-1234567";
   const phoneLink = contact?.phone.link?.trim() || "tel:+97711234567";
-  const emailText = contact?.email.text?.trim() || "info@cycnepal.com";
+  const emailText =
+    (isNepaliLocale ? contact?.email.textNe?.trim() : "") || contact?.email.text?.trim() || "info@cycnepal.com";
   const emailLink = contact?.email.link?.trim() || "mailto:info@cycnepal.com";
 
   const normalizePath = (href: string) => href.split("#")[0];
@@ -534,7 +540,7 @@ export function TopContactBar() {
 
           {/* Drawer body */}
           <nav className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-1.5">
               {navItems.map((item) => {
                 const hasChildren = Boolean(item.children?.length);
                 const isActive = isNavItemActive(item);
@@ -543,11 +549,11 @@ export function TopContactBar() {
                   <li key={item.label}>
                     {hasChildren ? (
                       <>
-                        <div className="flex items-stretch">
+                        <div className={`flex items-stretch rounded-lg ${isActive ? "bg-[#e8f7f4]" : "hover:bg-zinc-50"}`}>
                           <Link
                             href={item.href}
                             onClick={closeMenu}
-                            className={`flex min-h-11 flex-1 items-center rounded-lg px-3 text-base font-semibold ${
+                            className={`flex min-h-12 flex-1 items-center rounded-lg px-3 text-base font-semibold ${
                               isActive ? "text-[#005d59]" : "text-zinc-800"
                             }`}
                           >
@@ -558,7 +564,7 @@ export function TopContactBar() {
                             onClick={() => toggleExpanded(item.label)}
                             aria-label={`Toggle ${item.label}`}
                             aria-expanded={isOpen}
-                            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-zinc-500 hover:bg-zinc-50"
+                            className={`grid h-12 w-11 shrink-0 place-items-center rounded-lg ${isActive ? "text-[#005d59]" : "text-zinc-500"}`}
                           >
                             <svg
                               className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
@@ -593,8 +599,8 @@ export function TopContactBar() {
                       <Link
                         href={item.href}
                         onClick={closeMenu}
-                        className={`flex min-h-11 items-center rounded-lg px-3 text-base font-semibold ${
-                          isActive ? "text-[#005d59]" : "text-zinc-800 hover:bg-zinc-50"
+                        className={`flex min-h-12 items-center rounded-lg px-3 text-base font-semibold ${
+                          isActive ? "bg-[#e8f7f4] text-[#005d59]" : "text-zinc-800 hover:bg-zinc-50"
                         }`}
                       >
                         {item.label}
@@ -606,20 +612,21 @@ export function TopContactBar() {
             </ul>
           </nav>
 
-          {/* Drawer footer */}
-          <div className="border-t border-zinc-200 px-4 py-4">
-            {/* Language toggle */}
-            <div className="mb-3 flex items-center gap-2">
-              <HiOutlineTranslate className="h-5 w-5 text-[#005d59]" />
+          {/* Drawer footer — compact utility cluster (language, quick links, stock).
+              Kept deliberately dense so the primary navigation above stays the focus. */}
+          <div className="border-t border-zinc-200 px-3 py-3">
+            {/* Language toggle — compact segmented control */}
+            <div className="flex items-center rounded-lg border border-zinc-200 bg-zinc-50 p-0.5">
+              <HiOutlineTranslate className="mx-1.5 h-4 w-4 shrink-0 text-[#005d59]" />
               <button
                 onClick={() => handleLanguageChange('en')}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${currentLocale === 'en' ? 'border-[#005d59] bg-[#e8f7f4] text-[#005d59]' : 'border-zinc-300 text-zinc-600'}`}
+                className={`flex-1 rounded-md py-1.5 text-sm font-semibold transition ${currentLocale === 'en' ? 'bg-white text-[#005d59] shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
               >
                 English
               </button>
               <button
                 onClick={() => handleLanguageChange('ne')}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${currentLocale === 'ne' ? 'border-[#005d59] bg-[#e8f7f4] text-[#005d59]' : 'border-zinc-300 text-zinc-600'}`}
+                className={`flex-1 rounded-md py-1.5 text-sm font-semibold transition ${currentLocale === 'ne' ? 'bg-white text-[#005d59] shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
               >
                 नेपाली
               </button>
@@ -627,45 +634,56 @@ export function TopContactBar() {
 
             {/* Login / Profile */}
             {user ? (
-              <div className="mb-3 flex flex-col gap-1 rounded-xl border border-slate-200 p-2">
-                <div className="flex items-center gap-3 px-2 py-1">
-                  <FaUserCircle className="h-7 w-7 text-[#3CA3C8]" />
+              <div className="mt-3 rounded-xl border border-slate-200 p-2">
+                <div className="flex items-center gap-3 px-1 py-1">
+                  <FaUserCircle className="h-7 w-7 shrink-0 text-[#3CA3C8]" />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-800">{user.fullName || "Signed in"}</p>
                     {user.email && <p className="truncate text-xs text-slate-500">{user.email}</p>}
                   </div>
                 </div>
-                <Link href={localizeHref("/dashboard")} onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Dashboard</Link>
-                <Link href={localizeHref("/dashboard/applications")} onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">My Applications</Link>
-                <Link href={localizeHref("/dashboard/profile")} onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Profile</Link>
-                <button type="button" onClick={() => void handleLogout()} className="flex min-h-11 items-center rounded-lg px-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50">Logout</button>
+                <div className="mt-1 grid grid-cols-2 gap-1">
+                  <Link href={localizeHref("/dashboard")} onClick={closeMenu} className="flex min-h-10 items-center justify-center rounded-lg border border-slate-200 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Dashboard</Link>
+                  <Link href={localizeHref("/dashboard/applications")} onClick={closeMenu} className="flex min-h-10 items-center justify-center rounded-lg border border-slate-200 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Applications</Link>
+                  <Link href={localizeHref("/dashboard/profile")} onClick={closeMenu} className="flex min-h-10 items-center justify-center rounded-lg border border-slate-200 px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Profile</Link>
+                  <button type="button" onClick={() => void handleLogout()} className="flex min-h-10 items-center justify-center rounded-lg border border-red-100 px-2 text-xs font-semibold text-red-600 hover:bg-red-50">Logout</button>
+                </div>
               </div>
             ) : (
               <Link
                 href={localizeHref("/login")}
                 onClick={closeMenu}
-                className="mb-3 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold text-white"
+                className="mt-3 flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white"
                 style={{ backgroundColor: "#3CA3C8" }}
               >
+                <FaUserCircle className="h-5 w-5" />
                 Login
               </Link>
             )}
 
-            {/* Vacancy / Notices / Stock Exchange */}
-            <div className="flex flex-col gap-1">
-              <Link href={localizeHref("/vacancies")} onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Vacancy</Link>
-              <Link href={localizeHref("/notices")} onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Notices</Link>
-              <Link href={localizeHref("/gunaso")} onClick={closeMenu} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Gunaso</Link>
-              <a
-                href="https://www.nepalstock.com.np/company/detail/8065"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1 flex min-h-11 items-center justify-center rounded-full px-4 text-xs font-bold tracking-wide text-white"
-                style={{ backgroundColor: "#3CA3C8" }}
-              >
-                CYCL IN STOCK EXCHANGE
-              </a>
+            {/* Quick links — Vacancy / Notices / Gunaso as a single compact row */}
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <Link href={localizeHref("/vacancies")} onClick={closeMenu} className="relative flex min-h-10 items-center justify-center rounded-lg border border-zinc-200 px-1 text-xs font-semibold text-zinc-700 hover:border-[#005d59] hover:text-[#005d59]">
+                <span className="absolute right-1.5 top-1.5 flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+                </span>
+                Vacancy
+              </Link>
+              <Link href={localizeHref("/notices")} onClick={closeMenu} className="flex min-h-10 items-center justify-center rounded-lg border border-zinc-200 px-1 text-xs font-semibold text-zinc-700 hover:border-[#005d59] hover:text-[#005d59]">Notices</Link>
+              <Link href={localizeHref("/gunaso")} onClick={closeMenu} className="flex min-h-10 items-center justify-center rounded-lg border border-zinc-200 px-1 text-xs font-semibold text-zinc-700 hover:border-[#005d59] hover:text-[#005d59]">Gunaso</Link>
             </div>
+
+            {/* Stock exchange — slim accent button */}
+            <a
+              href="https://www.nepalstock.com.np/company/detail/8065"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex min-h-10 items-center justify-center rounded-lg px-4 text-xs font-bold tracking-wide text-white"
+              style={{ backgroundColor: "#3CA3C8" }}
+            >
+              CYCL in Stock Exchange
+            </a>
           </div>
         </div>
       </div>

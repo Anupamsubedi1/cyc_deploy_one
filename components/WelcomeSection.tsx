@@ -65,20 +65,23 @@ export function WelcomeSection({ aboutCompanyInfo }: WelcomeSectionProps) {
       >
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-10 px-4 sm:px-6 lg:grid-cols-[1.06fr_0.94fr] lg:gap-12 lg:px-8">
         {/* Left Side: Visual Elements */}
-        <div className={`relative min-h-107.5 transition-all duration-700 ease-out sm:min-h-130 ${visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
+        {/* On mobile (< sm) all transitions/animations are disabled: base classes keep
+            the content fully visible and static; the reveal + float animations are
+            re-enabled from `sm:` upward. */}
+        <div className={`relative min-h-107.5 translate-y-0 opacity-100 sm:min-h-130 sm:transition-all sm:duration-700 sm:ease-out ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-6 sm:opacity-0"}`}>
           <div className="absolute left-0 top-0 h-67.5 w-full max-w-90 overflow-hidden sm:h-80.75 sm:w-107.5 sm:max-w-107.5 lg:h-97.5 lg:w-130 lg:max-w-130">
-            <div className="h-90 w-90 -translate-y-22.5 rounded-full bg-teal-mid shadow-[0_24px_70px_rgba(0,122,142,0.28)] animate-[floatBubble_8s_ease-in-out_infinite] sm:h-107.5 sm:w-107.5 sm:-translate-y-27 lg:h-130 lg:w-130 lg:-translate-y-32.5" />
+            <div className="h-90 w-90 -translate-y-22.5 rounded-full bg-teal-mid shadow-[0_24px_70px_rgba(0,122,142,0.28)] sm:h-107.5 sm:w-107.5 sm:-translate-y-27 sm:animate-[floatBubble_8s_ease-in-out_infinite] lg:h-130 lg:w-130 lg:-translate-y-32.5" />
           </div>
 
-          <div className="relative z-10 px-6 pt-6 transition-all duration-700 delay-150 sm:px-10 sm:pt-8 lg:px-12 lg:pt-10">
+          <div className="relative z-10 px-6 pt-6 sm:px-10 sm:pt-8 sm:transition-all sm:duration-700 sm:delay-150 lg:px-12 lg:pt-10">
             <div className="flex">
-              <h2 className={`max-w-[20ch] text-[1.2rem] font-semibold leading-[1.14] tracking-[0.01em] text-white transition-all duration-700 sm:text-[2rem] lg:text-[2.2rem] ${visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+              <h2 className={`max-w-[20ch] text-[1.2rem] font-semibold leading-[1.14] tracking-[0.01em] text-white translate-y-0 opacity-100 sm:text-[2rem] sm:transition-all sm:duration-700 lg:text-[2.2rem] ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-4 sm:opacity-0"}`}>
                 <p>{localizedHeading || t('welcome_title')}</p>
               </h2>
             </div>
 
             <div
-              className={`relative mt-5 h-60 w-full max-w-130 overflow-hidden border-[5px] border-[#d6ab33] bg-white/8 shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all duration-700 delay-200 sm:mt-6 sm:h-80 lg:mt-7 lg:h-98.75 ${visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}
+              className={`relative mt-5 h-60 w-full max-w-130 overflow-hidden border-[5px] border-[#d6ab33] bg-white/8 shadow-[0_10px_30px_rgba(0,0,0,0.12)] translate-y-0 opacity-100 sm:mt-6 sm:h-80 sm:transition-all sm:duration-700 sm:delay-200 lg:mt-7 lg:h-98.75 ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-6 sm:opacity-0"}`}
               aria-label="About company image"
             >
               <Image
@@ -95,7 +98,7 @@ export function WelcomeSection({ aboutCompanyInfo }: WelcomeSectionProps) {
         </div>
 
         {/* Right Side: Content */}
-        <article className={`max-w-162.5 pt-8 text-[#2e3f54] transition-all duration-700 delay-300 sm:pt-10 lg:pt-12 ${visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
+        <article className={`max-w-162.5 pt-8 text-[#2e3f54] translate-y-0 opacity-100 sm:pt-10 sm:transition-all sm:duration-700 sm:delay-300 lg:pt-12 ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-6 sm:opacity-0"}`}>
           {hasCmsContent ? (
             <>
               <RichTextContent
@@ -121,7 +124,7 @@ export function WelcomeSection({ aboutCompanyInfo }: WelcomeSectionProps) {
 
           <Link
             href={withLocalePath(locale, "/about-us")}
-            className={`mt-8 inline-flex items-center justify-center gap-2 rounded-md bg-teal-mid px-7 py-3 text-base font-semibold text-white shadow-[0_8px_22px_rgba(0,122,142,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#006a7b] ${visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+            className={`mt-8 inline-flex items-center justify-center gap-2 rounded-md bg-teal-mid px-7 py-3 text-base font-semibold text-white shadow-[0_8px_22px_rgba(0,122,142,0.28)] translate-y-0 opacity-100 hover:bg-[#006a7b] sm:transition-all sm:duration-300 sm:hover:-translate-y-0.5 ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-4 sm:opacity-0"}`}
           >
             {t("read_more")}
             <svg

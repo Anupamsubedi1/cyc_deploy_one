@@ -163,9 +163,12 @@ export default function ContactManagement() {
   };
 
   const handleSave = async () => {
-    const requiredFields: ContactField[] = ["phone", "email", "facebook", "whatsapp", "location"];
+    // Only phone and email are mandatory (both are shown in the site top bar).
+    // Facebook, WhatsApp and location are optional so the admin can update the
+    // phone/email without being forced to fill in every channel.
+    const requiredFields: ContactField[] = ["phone", "email"];
     if (requiredFields.some((k) => !formData[k].text.trim() || !formData[k].link.trim())) {
-      setError("All contact details require both text and link (English)");
+      setError("Phone and email each require both display text and an action link (English).");
       return;
     }
     try {

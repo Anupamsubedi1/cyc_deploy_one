@@ -100,7 +100,8 @@ export default function HeroCarousel({
 
 
 
-<div className={`absolute inset-0 flex flex-col items-center justify-end text-white px-4 pb-6 pt-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10 transition-opacity duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
+{/* Title / subtitle overlay — shown on laptop (lg) and up only; hidden on mobile & tablet. */}
+<div className={`absolute inset-0 hidden flex-col items-center justify-end text-white px-4 pb-6 pt-6 sm:px-6 sm:pb-8 lg:flex lg:px-8 lg:pb-10 transition-opacity duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
               <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-3 sm:mb-4 text-center leading-tight">
                 {title}
               </h1>

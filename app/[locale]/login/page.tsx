@@ -131,11 +131,12 @@ export default function LoginPage(): React.JSX.Element {
       {/* Form panel */}
       <main className="flex w-full items-center justify-center px-4 py-8 sm:px-8 lg:w-1/2">
         <div className="w-full max-w-md">
-          {/* Mobile header */}
-          <div className="mb-6 flex items-center justify-between lg:hidden">
-            <Image src="/cyc-logo.jpg" alt="The CYC Nepal Laghubitta Bittiya Sanstha Ltd." width={200} height={60} className="h-12 w-auto" priority />
-            <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#005d59]">
-              <ArrowLeft className="h-4 w-4" /> Home
+          {/* Mobile header — logo may shrink so the "Home" link always stays visible,
+              even on very narrow (~335px) screens. */}
+          <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
+            <Image src="/cyc-logo.jpg" alt="The CYC Nepal Laghubitta Bittiya Sanstha Ltd." width={200} height={60} className="h-9 w-auto max-w-[55%] shrink object-contain sm:h-12" priority />
+            <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium text-slate-500 hover:text-[#005d59]">
+              <ArrowLeft className="h-4 w-4 shrink-0" /> Home
             </Link>
           </div>
 

@@ -354,7 +354,8 @@ export function ContactSection() {
                 </div>
               </a>
 
-              {/* Facebook */}
+              {/* Facebook (optional) */}
+              {(contact.facebook.link || contact.facebook.text) && (
               <a href={contact.facebook.link} target="_blank" rel="noreferrer" className="ct-card">
                 <div className="ct-card-bar" />
                 <div className="ct-card-body">
@@ -370,8 +371,10 @@ export function ContactSection() {
                   <p className="ct-card-value">{contact.facebook.text}</p>
                 </div>
               </a>
+              )}
 
-              {/* WhatsApp */}
+              {/* WhatsApp (optional) */}
+              {(contact.whatsapp.link || contact.whatsapp.text) && (
               <a href={contact.whatsapp.link} target="_blank" rel="noreferrer" className="ct-card">
                 <div className="ct-card-bar" />
                 <div className="ct-card-body">
@@ -387,8 +390,10 @@ export function ContactSection() {
                   <p className="ct-card-value">{contact.whatsapp.text}</p>
                 </div>
               </a>
+              )}
 
-              {/* Location */}
+              {/* Location (optional) */}
+              {(contact.location.link || contact.location.text) && (
               <a href={locationLink} className="ct-card">
                 <div className="ct-card-bar" />
                 <div className="ct-card-body">
@@ -408,6 +413,7 @@ export function ContactSection() {
                   <p className="ct-card-value">{locationText}</p>
                 </div>
               </a>
+              )}
             </div>
           ) : null}
 

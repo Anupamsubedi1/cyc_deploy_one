@@ -100,13 +100,10 @@ function hasValidContactItem(item: { text?: string; link?: string } | undefined)
 function hasValidContactDetails(details: ContactDetails | undefined) {
   if (!details) return false;
 
-  return (
-    hasValidContactItem(details.phone) &&
-    hasValidContactItem(details.email) &&
-    hasValidContactItem(details.facebook) &&
-    hasValidContactItem(details.whatsapp) &&
-    hasValidContactItem(details.location)
-  );
+  // Phone and email are the only required channels (both appear in the site top
+  // bar). Facebook, WhatsApp and location are optional, so editing/activating a
+  // profile does not force every channel to be filled in.
+  return hasValidContactItem(details.phone) && hasValidContactItem(details.email);
 }
 
 export async function GET(request: NextRequest) {
@@ -149,8 +146,7 @@ export async function POST(request: NextRequest) {
     if (!hasValidContactDetails(data)) {
       return NextResponse.json(
         {
-          error:
-            "All contact details (phone, email, facebook, whatsapp) and location are required",
+          error: "Phone and email are required (each needs display text and an action link)",
         },
         { status: 400 },
       );
@@ -191,8 +187,7 @@ export async function PUT(request: NextRequest) {
     if (data.isActive && !hasValidContactDetails(data as ContactDetails)) {
       return NextResponse.json(
         {
-          error:
-            "All contact details (phone, email, facebook, whatsapp) and location are required",
+          error: "Phone and email are required (each needs display text and an action link)",
         },
         { status: 400 },
       );
