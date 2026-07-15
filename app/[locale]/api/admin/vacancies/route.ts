@@ -82,6 +82,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
        examDate,
        examVenue,
        examTime,
+       noticePdfUrl,
+       noticePdfPublicId,
      } = body;
 
      // Validate required fields
@@ -137,6 +139,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
        examDate: examDate || undefined,
        examVenue: examVenue || undefined,
        examTime: examTime || undefined,
+       noticePdfUrl: noticePdfUrl || undefined,
+       noticePdfPublicId: noticePdfPublicId || undefined,
        isActive: true,
        createdBy: new ObjectId(session.sub),
      });

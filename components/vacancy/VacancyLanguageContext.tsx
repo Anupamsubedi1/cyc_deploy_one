@@ -151,6 +151,9 @@ export const vacancyTranslations: Record<VacancyLanguage, Record<string, string>
     "vacancy.documentTitle": "Document Title",
     "vacancy.download": "Download",
     "vacancy.preview": "Preview",
+    "vacancy.vacancyNotice": "Vacancy Notice",
+    "vacancy.downloadNoticePdf": "Download Notice (PDF)",
+    "vacancy.viewNotice": "View Notice",
     // Education fields
     "vacancy.education": "Education",
     "vacancy.addEducation": "+ Add Education Detail",
@@ -383,6 +386,9 @@ export const vacancyTranslations: Record<VacancyLanguage, Record<string, string>
     "vacancy.documentTitle": "कागजात नाम",
     "vacancy.download": "डाउनलोड",
     "vacancy.preview": "पूर्वावलोकन",
+    "vacancy.vacancyNotice": "रिक्ति सूचना",
+    "vacancy.downloadNoticePdf": "पीडीएफ डाउनलोड गर्नुहोस्",
+    "vacancy.viewNotice": "पीडीएफ हेर्नुहोस्",
     // Education fields
     "vacancy.education": "शिक्षा",
     "vacancy.addEducation": "+ शिक्षा विवरण थप्नुहोस्",

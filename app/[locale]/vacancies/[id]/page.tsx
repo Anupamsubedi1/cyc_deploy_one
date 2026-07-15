@@ -216,6 +216,28 @@ export default function VacancyDetailPage({
           </p>
         </div>
 
+        {/* Vacancy Notice PDF Section */}
+        {vacancy.noticePdfUrl && (
+          <div className="rounded-lg border border-[#d6e6ed] bg-white p-8 shadow-sm">
+            <h2 className="mb-4 text-xl font-bold text-[#123451]">
+              {routeParams.locale === "ne" ? "रिक्ति सूचना" : "Vacancy Notice"}
+            </h2>
+            <div>
+              <a
+                href={vacancy.noticePdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#0d837f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#08716e]"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {routeParams.locale === "ne" ? "पीडीएफ डाउनलोड गर्नुहोस्" : "Download Notice (PDF)"}
+              </a>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border border-[#d6e6ed] bg-white p-8 shadow-sm">
           <h2 className="mb-6 text-2xl font-bold text-[#123451]">Ready to Apply?</h2>
           {deadlinePassed ? (

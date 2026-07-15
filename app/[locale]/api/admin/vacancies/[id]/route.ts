@@ -118,6 +118,8 @@ export async function PUT(
        examDate,
        examVenue,
        examTime,
+       noticePdfUrl,
+       noticePdfPublicId,
        isActive,
      } = body;
 
@@ -159,6 +161,8 @@ export async function PUT(
      if (examDate !== undefined) updates.examDate = examDate || undefined;
      if (examVenue !== undefined) updates.examVenue = examVenue || undefined;
      if (examTime !== undefined) updates.examTime = examTime || undefined;
+     if (noticePdfUrl !== undefined) updates.noticePdfUrl = noticePdfUrl || undefined;
+     if (noticePdfPublicId !== undefined) updates.noticePdfPublicId = noticePdfPublicId || undefined;
      if (typeof isActive === "boolean") updates.isActive = isActive;
 
     const updatedVacancy = await updateVacancy(id, updates);

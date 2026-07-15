@@ -35,6 +35,10 @@ type VacancyFormState = {
   examDate: string;
   examTime: string;
   examVenue: string;
+  /** Existing PDF URL (for editing) */
+  noticePdfUrl?: string;
+  /** Cloudinary public ID (for deletion on re-upload) */
+  noticePdfPublicId?: string;
 };
 
 interface VacancyFormProps {
@@ -77,9 +81,13 @@ export default function VacancyForm({
     examDate: initialData?.examDate || "",
     examTime: initialData?.examTime || "",
     examVenue: initialData?.examVenue || "",
+    noticePdfUrl: (initialData as any)?.noticePdfUrl || "",
+    noticePdfPublicId: (initialData as any)?.noticePdfPublicId || "",
   };
 
   const [formData, setFormData] = useState<VacancyFormState>(defaultState);
+  const [noticePdfFile, setNoticePdfFile] = useState<File | null>(null);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -174,6 +182,34 @@ export default function VacancyForm({
     }
 
     try {
+      // Upload PDF first if a new file was selected
+      let noticePdfUrl = formData.noticePdfUrl || undefined;
+      let noticePdfPublicId = formData.noticePdfPublicId || undefined;
+
+      if (noticePdfFile) {
+        setUploadingPdf(true);
+        const pdfFormData = new FormData();
+        pdfFormData.append("pdf", noticePdfFile);
+
+        const uploadRes = await fetch("/api/admin/vacancies/upload-notice-pdf", {
+          method: "POST",
+          body: pdfFormData,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadErr = await uploadRes.json();
+          setError(uploadErr.error || "Failed to upload PDF");
+          setUploadingPdf(false);
+          setLoading(false);
+          return;
+        }
+
+        const uploadData = await uploadRes.json();
+        noticePdfUrl = uploadData.secure_url;
+        noticePdfPublicId = uploadData.public_id;
+        setUploadingPdf(false);
+      }
+
       const payload = {
         titleEn: formData.titleEn,
         titleNp: formData.titleNp,
@@ -199,6 +235,8 @@ export default function VacancyForm({
         examDate: formData.examDate || undefined,
         examTime: formData.examTime || undefined,
         examVenue: formData.examVenue || undefined,
+        noticePdfUrl,
+        noticePdfPublicId,
         isActive: true,
       };
 
@@ -520,6 +558,90 @@ export default function VacancyForm({
           </div>
         </div>
 
+        {/* Section: Vacancy Notice PDF */}
+        <div className={cardCls}>
+          <h2 className={sectionTitleCls}>
+            <FileText className="h-4 w-4 text-teal-600" /> Vacancy Notice PDF
+            <span className="text-xs font-semibold text-slate-400 normal-case tracking-normal">(Optional — shown to applicants)</span>
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className={labelCls}>
+                Upload Notice PDF
+                <span className="text-xs font-semibold text-slate-400">(Max 10MB, PDF only)</span>
+              </label>
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setNoticePdfFile(file);
+                  if (file) {
+                    // Clear previous URL so the new file takes precedence
+                    setFormData((prev) => ({ ...prev, noticePdfUrl: "", noticePdfPublicId: "" }));
+                  }
+                }}
+                className={inputCls + " file:mr-3 file:py-1.5 file:px-3 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"}
+              />
+              {uploadingPdf && (
+                <p className="mt-2 text-sm text-teal-600 font-semibold">Uploading PDF...</p>
+              )}
+            </div>
+
+            {/* Show existing PDF link if available */}
+            {formData.noticePdfUrl && !noticePdfFile && (
+              <div className="flex items-center gap-3 rounded-none border border-teal-200 bg-teal-50 px-4 py-3">
+                <FileText className="h-5 w-5 text-teal-600 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-teal-800 truncate">
+                    Current notice PDF
+                  </p>
+                  <a
+                    href={formData.noticePdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-teal-600 hover:underline"
+                  >
+                    Open in new tab →
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, noticePdfUrl: "", noticePdfPublicId: "" }));
+                    setNoticePdfFile(null);
+                  }}
+                  className="text-sm font-semibold text-rose-600 hover:text-rose-800"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+
+            {/* Show selected file name */}
+            {noticePdfFile && (
+              <div className="flex items-center gap-3 rounded-none border border-slate-200 bg-slate-50 px-4 py-3">
+                <FileText className="h-5 w-5 text-slate-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-700 truncate">{noticePdfFile.name}</p>
+                  <p className="text-xs text-slate-500">
+                    {(noticePdfFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNoticePdfFile(null);
+                  }}
+                  className="text-sm font-semibold text-rose-600 hover:text-rose-800"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Form Action Controls */}
         <div className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-6">
           <button
@@ -543,7 +665,10 @@ export default function VacancyForm({
                   examDate: "",
                   examTime: "",
                   examVenue: "",
+                  noticePdfUrl: "",
+                  noticePdfPublicId: "",
                 });
+                setNoticePdfFile(null);
               }
             }}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-none border border-slate-200 bg-white px-4 py-2 text-sm font-extrabold text-slate-600 transition hover:bg-slate-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/20"

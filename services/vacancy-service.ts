@@ -47,6 +47,10 @@ export interface Vacancy {
   examDate?: string; // optional ISO date string — shown on the admit card
   examVenue?: string; // optional exam location/venue — shown on the admit card
   examTime?: string; // optional exam time — shown on the admit card
+  /** URL to the vacancy notice PDF uploaded by admin (shown to applicants) */
+  noticePdfUrl?: string;
+  /** Cloudinary public ID of the notice PDF (used for deletion) */
+  noticePdfPublicId?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
