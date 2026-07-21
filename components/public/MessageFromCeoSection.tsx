@@ -27,6 +27,19 @@ export function MessageFromCeoSection({
   const sectionRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
+  /*
+    The stored Cloudinary URL is not guaranteed to resolve — see the onError
+    below. Recording *which* URL failed rather than a boolean means a new
+    upload clears the fallback on its own, with no effect needed to reset it.
+  */
+  const configuredPortrait = messageFromCeo?.imageUrl || "";
+  const [failedPortrait, setFailedPortrait] = useState<string | null>(null);
+
+  const portraitSrc =
+    configuredPortrait && failedPortrait === configuredPortrait
+      ? "/ceo-placeholder.svg"
+      : configuredPortrait;
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -72,19 +85,25 @@ export function MessageFromCeoSection({
               className="w-full group overflow-hidden relative"
               style={{ background: "#f3f1ea" }}
             >
-              {messageFromCeo?.imageUrl ? (
+              {portraitSrc ? (
                 /* Was a raw <img>: served the full-size Cloudinary original and,
                    being eager by default, was preloaded in competition with the
                    hero despite sitting below the fold. */
                 <Image
-                  src={messageFromCeo.imageUrl}
+                  src={portraitSrc}
                   alt={ceoName}
                   width={640}
                   height={800}
                   sizes="(max-width: 1024px) 100vw, 40vw"
                   quality={75}
-                  loader={isCloudinaryUrl(messageFromCeo.imageUrl) ? cloudinaryLoader : undefined}
+                  loader={isCloudinaryUrl(portraitSrc) ? cloudinaryLoader : undefined}
                   loading="lazy"
+                  /* A CMS record can outlive the asset it points at — if the
+                     Cloudinary public_id is deleted or renamed, the stored URL
+                     404s and the card renders a broken-image icon. Falling back
+                     to the bundled placeholder keeps the layout intact until
+                     someone re-uploads the portrait. */
+                  onError={() => setFailedPortrait(configuredPortrait)}
                   className="block w-full h-auto transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               ) : (
