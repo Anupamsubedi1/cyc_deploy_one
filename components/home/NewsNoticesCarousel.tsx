@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { cloudinarySrc } from "@/lib/cloudinary-loader";
+import cloudinaryLoader, { isCloudinaryUrl } from "@/lib/cloudinary-loader";
 
 type CarouselItem =
   | {
@@ -120,7 +121,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
                   color: "#007A8E",
-                  fontFamily: "DM Sans, sans-serif",
+                  fontFamily: "var(--font-dm-sans), sans-serif",
                 }}
               >
                 {copy.eyebrow}
@@ -177,7 +178,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                     cursor: "pointer",
                     fontSize: isMobile ? 14 : 15,
                     fontWeight: 600,
-                    fontFamily: "DM Sans, sans-serif",
+                    fontFamily: "var(--font-dm-sans), sans-serif",
                     background: active ? "#005B5C" : "transparent",
                     color: active ? "white" : "#3d5a5a",
                     transition: "all 0.2s ease",
@@ -254,22 +255,21 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                   >
                     {/* Image */}
                     <div style={{ position: "relative", height: isMobile ? 200 : 250, overflow: "hidden", flexShrink: 0 }}>
-                      <img
-                        src={
-                          item.image
-                            ? cloudinarySrc(item.image, 800, 72)
-                            : "/news-images/news-1.jpeg"
-                        }
+                      {/* Was a raw <img> pinned to a single 800px Cloudinary
+                          variant, so a 360px-wide phone card downloaded the
+                          desktop plate. next/image emits a proper srcset and
+                          `sizes` tells it the card is at most a third of the
+                          grid on desktop. */}
+                      <Image
+                        src={item.image || "/news-images/news-1.jpeg"}
                         alt={item.title}
-                        width={800}
-                        height={isMobile ? 200 : 250}
+                        fill
+                        sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 400px"
+                        quality={72}
+                        loader={isCloudinaryUrl(item.image) ? cloudinaryLoader : undefined}
                         loading="lazy"
-                        decoding="async"
                         style={{
-                          width: "100%",
-                          height: "100%",
                           objectFit: "cover",
-                          display: "block",
                           transition: "transform 0.6s ease",
                         }}
                         onMouseEnter={(e) => {
@@ -292,7 +292,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                           padding: "5px 12px",
                           borderRadius: 50,
                           letterSpacing: "0.06em",
-                          fontFamily: "DM Sans, sans-serif",
+                          fontFamily: "var(--font-dm-sans), sans-serif",
                         }}
                       >
                         {getItemTag(item, copy)}
@@ -319,7 +319,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical" as const,
                           overflow: "hidden",
-                          fontFamily: "Noto Sans Devanagari, DM Sans, sans-serif",
+                          fontFamily: "var(--font-noto-devanagari), var(--font-dm-sans), sans-serif",
                         }}
                       >
                         {item.title}
@@ -328,7 +328,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                       <p
                         style={{
                           fontSize: 14,
-                          color: "#7a9a9a",
+                          color: "#5a7a7a",
                           lineHeight: 1.7,
                           margin: "0 0 18px",
                           flex: 1,
@@ -336,7 +336,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                           WebkitLineClamp: 3,
                           WebkitBoxOrient: "vertical" as const,
                           overflow: "hidden",
-                          fontFamily: "DM Sans, sans-serif",
+                          fontFamily: "var(--font-dm-sans), sans-serif",
                         }}
                       >
                         {item.summary || copy.noticeDescription}
@@ -359,8 +359,8 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                             alignItems: "center",
                             gap: 7,
                             fontSize: 13,
-                            color: "#7a9a9a",
-                            fontFamily: "DM Sans, sans-serif",
+                            color: "#5a7a7a",
+                            fontFamily: "var(--font-dm-sans), sans-serif",
                           }}
                         >
                           <span
@@ -376,8 +376,14 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                           {item.label}
                         </div>
 
+                        {/* Every card rendered the bare text "Read More", so
+                            screen readers and crawlers saw several identical
+                            links pointing at different articles. The visible
+                            label stays short; the accessible name carries the
+                            headline it leads to. */}
                         <Link
                           href={getItemHref(item)}
+                          aria-label={`Read more: ${item.title}`}
                           style={{
                             display: "flex",
                             alignItems: "center",
@@ -386,7 +392,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                             fontWeight: 700,
                             color: "#005B5C",
                             textDecoration: "none",
-                            fontFamily: "DM Sans, sans-serif",
+                            fontFamily: "var(--font-dm-sans), sans-serif",
                             letterSpacing: "0.02em",
                             transition: "gap 0.2s ease, color 0.2s ease",
                           }}
@@ -453,8 +459,8 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
               justifyContent: "center",
               minHeight: 200,
               background: "white",
-              color: "#7a9a9a",
-              fontFamily: "DM Sans, sans-serif",
+              color: "#5a7a7a",
+              fontFamily: "var(--font-dm-sans), sans-serif",
               fontSize: 15,
             }}
           >
@@ -472,23 +478,40 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
               marginTop: 36,
             }}
           >
+            {/* The dot used to BE the button, giving a 7px tap target. The
+                button is now a transparent 24px hit area (the WCAG 2.2
+                minimum) with the pill drawn inside it, so the dots look
+                identical but are actually hittable on a phone. */}
             {Array.from({ length: maxIndex + 1 }).map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setCurrentIndex(i)}
                 aria-label={`Go to slide ${i + 1}`}
+                aria-current={currentIndex === i ? "true" : undefined}
                 style={{
-                  width: currentIndex === i ? 22 : 7,
-                  height: 7,
-                  borderRadius: 4,
-                  background: currentIndex === i ? "#005B5C" : "#A8D8B9",
-                  border: "none",
-                  cursor: "pointer",
+                  display: "grid",
+                  placeItems: "center",
+                  width: 24,
+                  height: 24,
                   padding: 0,
-                  transition: "all 0.25s ease",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
                 }}
-              />
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: "block",
+                    width: currentIndex === i ? 22 : 7,
+                    height: 7,
+                    borderRadius: 4,
+                    background: currentIndex === i ? "#005B5C" : "#A8D8B9",
+                    transition: "width 0.25s ease, background 0.25s ease",
+                  }}
+                />
+              </button>
             ))}
           </div>
         )}
@@ -503,7 +526,7 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
               border: "1.5px solid #005B5C",
               color: "#005B5C",
               borderRadius: 50,
-              fontFamily: "DM Sans, sans-serif",
+              fontFamily: "var(--font-dm-sans), sans-serif",
               fontSize: 15,
               fontWeight: 700,
               textDecoration: "none",

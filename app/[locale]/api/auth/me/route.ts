@@ -5,11 +5,12 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const user = await getAuthenticatedUser();
 
+    // "Nobody is signed in" is the expected state for every anonymous visitor,
+    // not an error. Answering 401 made the browser log a failed request to the
+    // console on every cold page load, which Lighthouse reports under Best
+    // Practices. The shape stays the same, so callers just read `user: null`.
     if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ user: null }, { status: 200 });
     }
 
     // A non-empty passwordHash means the account was created with email/password;

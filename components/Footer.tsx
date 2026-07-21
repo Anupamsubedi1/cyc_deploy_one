@@ -9,13 +9,22 @@ import { getFooterSettings } from '@/services/footer-service';
 import ClientQRCode from '@/components/ClientQRCode';
 import type { SocialPlatform } from '@/services/footer-service';
 
-const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ size?: number; className?: string }>> = {
+const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean | "true" | "false" }>> = {
   facebook: FaFacebookF,
   instagram: FaInstagram,
   youtube: FaYoutube,
   twitter: FaTwitter,
   linkedin: FaLinkedinIn,
   tiktok: FaTiktok,
+};
+
+const SOCIAL_LABELS: Record<SocialPlatform, string> = {
+  facebook: 'CYC Nepal on Facebook',
+  instagram: 'CYC Nepal on Instagram',
+  youtube: 'CYC Nepal on YouTube',
+  twitter: 'CYC Nepal on X',
+  linkedin: 'CYC Nepal on LinkedIn',
+  tiktok: 'CYC Nepal on TikTok',
 };
 
 export async function Footer() {
@@ -101,17 +110,23 @@ export async function Footer() {
               <div>
                 <h3 className="mb-5 text-lg font-bold uppercase tracking-wider text-mint">Follow Us On</h3>
                 <div className="flex gap-4 flex-wrap">
+                  {/* The icon is a decorative <svg> with no title, so these
+                      links had no accessible name at all — a screen reader
+                      announced six identical "link" entries. */}
                   {activeSocials.map(([platform, href]) => {
                     const Icon = SOCIAL_ICONS[platform];
+                    const label = SOCIAL_LABELS[platform];
                     return (
                       <a
                         key={platform}
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 transition-all hover:bg-mint hover:text-teal-deep hover:border-transparent"
+                        aria-label={`${label} (opens in a new tab)`}
+                        title={label}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 transition-colors hover:bg-mint hover:text-teal-deep hover:border-transparent"
                       >
-                        <Icon size={16} />
+                        <Icon size={16} aria-hidden="true" />
                       </a>
                     );
                   })}

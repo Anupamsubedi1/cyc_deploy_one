@@ -47,7 +47,15 @@
   --color-teal-mid: #007A8E;
   --color-mint: #A8D8B9;
   --color-blush: #F0E5D8;
-  --color-off-white: #F9F9F9;  
+  --color-off-white: #F9F9F9;
+
+  /*
+    Point Tailwind's `font-sans` at the same self-hosted DM Sans the sections
+    ask for by name, so `font-sans` utilities and the hand-written
+    `font-family` rules resolve to one font instead of two.
+  */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-dm-serif), ui-serif, Georgia, serif;
 }
 
 /*

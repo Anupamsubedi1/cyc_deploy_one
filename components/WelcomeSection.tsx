@@ -131,6 +131,7 @@ export function WelcomeSection({ aboutCompanyInfo }: WelcomeSectionProps) {
 
           <Link
             href={withLocalePath(locale, "/about-us")}
+            aria-label={`${t("read_more")} — ${t("welcome_title")}`}
             className={`mt-8 inline-flex items-center justify-center gap-2 rounded-md bg-teal-mid px-7 py-3 text-base font-semibold text-white shadow-[0_8px_22px_rgba(0,122,142,0.28)] translate-y-0 opacity-100 hover:bg-[#006a7b] sm:transition-all sm:duration-300 sm:hover:-translate-y-0.5 ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-4 sm:opacity-0"}`}
           >
             {t("read_more")}

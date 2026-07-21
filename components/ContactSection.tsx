@@ -32,8 +32,6 @@ export function ContactSection() {
   return (
     <>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600&family=DM+Sans:wght@300;400;500;700&display=swap');
-
         :root {
           --teal-deep: #005b5c;
           --teal-mid: #007a8e;
@@ -42,13 +40,13 @@ export function ContactSection() {
           --off-white: #f9f9f9;
           --text-dark: #1a2e2e;
           --text-mid: #3d5a5a;
-          --text-light: #7a9a9a;
+          --text-light: #5a7a7a;
         }
 
         .ct-section {
           background: var(--off-white);
           padding: 80px 0 100px;
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
           overflow: hidden;
           position: relative;
         }
@@ -89,7 +87,7 @@ export function ContactSection() {
         }
 
         .ct-heading {
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
           font-size: 40px;
           font-weight: 700;
           color: var(--text-dark);
@@ -220,7 +218,7 @@ export function ContactSection() {
           border: 1.5px solid var(--mint);
           /* border-radius removed */
           color: var(--mint);
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
           font-size: 15px;
           font-weight: 700;
           cursor: pointer;
@@ -261,7 +259,7 @@ export function ContactSection() {
           text-align: center;
           padding: 48px 0;
           color: var(--text-light);
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
           font-size: 15px;
         }
 

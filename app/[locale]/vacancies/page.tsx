@@ -68,7 +68,11 @@ export default function VacanciesPage(): React.JSX.Element {
     const checkSession = async () => {
       try {
         const response = await fetch("/api/auth/me");
-        setIsLoggedIn(response.ok);
+        // A 2xx no longer means "signed in": /api/auth/me returns 200 with
+        // `user: null` for anonymous visitors so it stops logging a 401 to
+        // the console on every page load. Read the body, not the status.
+        const data = response.ok ? await response.json() : null;
+        setIsLoggedIn(Boolean(data?.user));
       } catch {
         setIsLoggedIn(false);
       }

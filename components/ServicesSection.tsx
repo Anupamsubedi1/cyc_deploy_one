@@ -203,8 +203,6 @@ export default function ServicesSection({
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-
         :root {
           --teal-deep:  #005B5C;
           --teal-mid:   #007A8E;
@@ -213,17 +211,45 @@ export default function ServicesSection({
           --off-white:  #F9F9F9;
         }
 
+        /*
+          The original 468 KiB JPEG was the single heaviest asset on the page.
+          It sits behind a 60% black scrim, so it is never read for detail and
+          re-encodes very cheaply: phones now pull a 900px AVIF (~32 KiB) and
+          desktops a 1600px one (~100 KiB), with WebP for the handful of
+          browsers that lack AVIF. The first background-image is the plain-url
+          fallback for engines that do not parse image-set().
+        */
         .services-section {
           background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-            url("/images/services/our-services-bg.jpeg");
+            url("/images/services/our-services-bg-sm.webp");
+          background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+            image-set(
+              url("/images/services/our-services-bg-sm.avif") type("image/avif"),
+              url("/images/services/our-services-bg-sm.webp") type("image/webp")
+            );
           background-position: center;
           background-repeat: no-repeat;
           background-size: cover;
-          background-attachment: fixed;
           padding: 100px 24px 140px;
           position: relative;
           overflow: hidden;
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
+        }
+
+        @media (min-width: 901px) {
+          .services-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+              url("/images/services/our-services-bg.webp");
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+              image-set(
+                url("/images/services/our-services-bg.avif") type("image/avif"),
+                url("/images/services/our-services-bg.webp") type("image/webp")
+              );
+            /* Parallax only where it is actually honoured — iOS ignores a
+               fixed attachment outright, and on Android it forces a
+               full-viewport repaint on every scroll frame. */
+            background-attachment: fixed;
+          }
         }
 
         .services-container {
@@ -360,7 +386,7 @@ export default function ServicesSection({
         }
 
         .service-title {
-          font-family: 'DM Serif Display', serif;
+          font-family: var(--font-dm-serif), serif;
           font-size: 1.85rem;
           color: var(--teal-deep);
           margin-bottom: 16px;
@@ -459,7 +485,13 @@ export default function ServicesSection({
                 <div className="card-divider" />
                 <p className="service-description">{svc.description}</p>
 
-                <Link href={svc.route} className="service-link">
+                {/* "Learn More" repeated across cards reads as several
+                    identical links; the accessible name names the service. */}
+                <Link
+                  href={svc.route}
+                  className="service-link"
+                  aria-label={`Learn more about ${svc.title}`}
+                >
                   Learn More
                   <span className="link-arrow">
                     <svg width="16" height="16" viewBox="0 0 10 10" fill="none">

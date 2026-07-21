@@ -39,6 +39,15 @@
     "sanitize-html": "^2.17.4",
     "zod": "^4.3.6"
   },
+  "//browserslist": "Without an explicit target, the build ships polyfills for Array.prototype.at/flat/flatMap, Object.fromEntries/hasOwn and String.prototype.trimStart/trimEnd to every visitor. All of those are Baseline-supported in the browsers below, so the polyfill payload is dead weight. Floor is roughly Aug-Sep 2022 (Safari 16 / Chrome 104).",
+  "browserslist": [
+    "chrome >= 104",
+    "edge >= 104",
+    "firefox >= 104",
+    "safari >= 16",
+    "ios_saf >= 16",
+    "not dead"
+  ],
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

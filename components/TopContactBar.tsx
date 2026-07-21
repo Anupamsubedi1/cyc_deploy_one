@@ -506,7 +506,18 @@ export function TopContactBar() {
       </div>
 
       {/* Mobile Drawer + Backdrop */}
-      <div className={`fixed inset-0 z-[100] xl:hidden ${mobileMenuOpen ? "" : "pointer-events-none"}`} aria-hidden={!mobileMenuOpen}>
+      {/*
+        `aria-hidden` alone left the close button, the nav links and the
+        section toggles in the tab order while the drawer was shut — screen
+        reader users could focus controls that were announced as hidden.
+        `inert` removes the whole subtree from focus, hit-testing and the
+        accessibility tree in one go, so it replaces aria-hidden rather than
+        joining it (setting both is what axe flags).
+      */}
+      <div
+        className={`fixed inset-0 z-[100] xl:hidden ${mobileMenuOpen ? "" : "pointer-events-none"}`}
+        inert={!mobileMenuOpen}
+      >
         {/* Backdrop */}
         <div
           onClick={closeMenu}

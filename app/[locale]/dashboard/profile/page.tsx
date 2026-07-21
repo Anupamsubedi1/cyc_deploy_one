@@ -84,6 +84,13 @@ export default function ProfilePage() {
           return;
         }
         const data = await res.json();
+        // /api/auth/me now answers 200 with `user: null` for anonymous
+        // visitors rather than 401, so the redirect has to key off the
+        // payload — a 2xx no longer implies there is a session.
+        if (!data?.user) {
+          router.push(`/${locale}/login`);
+          return;
+        }
         setUser(data.user);
       } catch {
         router.push(`/${locale}/login`);

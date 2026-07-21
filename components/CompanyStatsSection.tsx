@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import cloudinaryLoader, { isCloudinaryUrl } from "@/lib/cloudinary-loader";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 
@@ -280,8 +282,6 @@ export function CompanyStatsSection() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-
         :root {
           --teal-deep:  #005B5C;
           --teal-mid:   #007A8E;
@@ -295,7 +295,7 @@ export function CompanyStatsSection() {
           padding: 80px 24px 120px;
           position: relative;
           overflow: hidden;
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
         }
 
         .highlights-container {
@@ -474,20 +474,28 @@ export function CompanyStatsSection() {
                 className={`highlight-card ${visible ? "visible" : ""}`}>
 
                 <div className="icon-wrapper">
-                  {/* Explicitly lazy: these sit well below the fold, but a raw
-                      <img> is eager by default, so the preload scanner was
-                      fetching all six in parallel with the hero and starving
-                      the LCP image of bandwidth on slow connections.
-                      Intrinsic size is declared to keep the grid from shifting. */}
-                  <img
-                    src={item.imageUrl || "/companyhighlights/office_branch.png"}
-                    alt={item.heading}
-                    width={64}
-                    height={64}
-                    loading="lazy"
-                    decoding="async"
-                    className="service-icon-image"
-                  />
+                  {/* Was a raw <img> pointing at the original upload, so a
+                      693x980 portrait shipped to fill a 72px box. next/image
+                      resizes and format-negotiates instead: Cloudinary sources
+                      go through their CDN via the loader, /public files through
+                      the Next optimizer. Still lazy — these sit below the fold
+                      and used to compete with the hero for bandwidth. */}
+                  {(() => {
+                    const src = item.imageUrl || "/companyhighlights/office_branch.png";
+                    return (
+                      <Image
+                        src={src}
+                        alt={item.heading}
+                        width={144}
+                        height={144}
+                        sizes="(max-width: 768px) 48px, 72px"
+                        quality={80}
+                        loader={isCloudinaryUrl(src) ? cloudinaryLoader : undefined}
+                        loading="lazy"
+                        className="service-icon-image"
+                      />
+                    );
+                  })()}
                 </div>
                 <div>
 

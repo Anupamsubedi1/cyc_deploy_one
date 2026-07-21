@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import MapEmbed from "@/components/MapEmbed";
 import type { ContactDetails } from "@/services/contact-service";
 import { 
   FaPhone, FaEnvelope, FaMapMarkerAlt, 
@@ -52,7 +53,7 @@ export default function ContactHome({ contactDetails, locale }: ContactHomeProps
         .contact-section {
           background: var(--color-off-white-);
           padding: 100px 0 60px;
-          font-family: 'DM Sans', sans-serif;
+          font-family: var(--font-dm-sans), sans-serif;
           position: relative;
           overflow: hidden;
         }
@@ -237,6 +238,91 @@ export default function ContactHome({ contactDetails, locale }: ContactHomeProps
           min-height: 520px;
         }
 
+        /* Facade shown until the visitor asks for the real embed. */
+        .map-facade {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          min-height: inherit;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .map-facade-btn {
+          flex: 1;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 32px 24px;
+          cursor: pointer;
+          border: 1px solid rgba(0, 122, 142, 0.18);
+          background:
+            radial-gradient(circle at 30% 25%, rgba(168, 216, 185, 0.28), transparent 55%),
+            radial-gradient(circle at 75% 70%, rgba(0, 122, 142, 0.16), transparent 55%),
+            var(--beige);
+          color: var(--text-dark);
+          font: inherit;
+          text-align: center;
+          transition: box-shadow 0.25s ease;
+        }
+
+        .map-facade-btn:hover {
+          box-shadow: inset 0 0 0 2px rgba(0, 122, 142, 0.3);
+        }
+
+        .map-facade-pin {
+          display: grid;
+          place-items: center;
+          width: 62px;
+          height: 62px;
+          border-radius: 50%;
+          background: var(--teal-mid);
+          color: #fff;
+          font-size: 27px;
+          box-shadow: 0 8px 24px rgba(0, 122, 142, 0.32);
+        }
+
+        .map-facade-title {
+          font-size: clamp(17px, 2.8vw, 19px);
+          font-weight: 600;
+        }
+
+        .map-facade-address {
+          font-size: clamp(14px, 2.5vw, 15px);
+          color: var(--text-mid);
+          max-width: 34ch;
+          line-height: 1.6;
+        }
+
+        .map-facade-cta {
+          margin-top: 6px;
+          padding: 9px 20px;
+          border-radius: 999px;
+          background: var(--teal-mid);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .map-facade-link {
+          padding: 12px 16px;
+          text-align: center;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--teal-deep);
+          background: #fff;
+          border: 1px solid rgba(0, 122, 142, 0.18);
+          border-top: none;
+          text-decoration: none;
+        }
+
+        .map-facade-link:hover {
+          background: rgba(0, 122, 142, 0.06);
+        }
+
         /* Responsive Layout */
         @media (min-width: 1200px) {
           .contact-grid { gap: 60px; }
@@ -411,14 +497,13 @@ export default function ContactHome({ contactDetails, locale }: ContactHomeProps
               </div>
             </div>
 
-            {/* Google Map - Exact match to your image with proper pin */}
+            {/* Google Map — mounted on demand, see MapEmbed for why. */}
             <div className="map-container">
-              <iframe
+              <MapEmbed
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28127.18013052863!2d83.9456963743164!3d28.210426100000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39960936f19c126d%3A0xdb76cf9b181d026e!2sCyc%20Nepal%20Laghubitta%20Bittiya%20Sanstha%20Ltd.!5e0!3m2!1sen!2snp!4v1777308756052!5m2!1sen!2snp"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
                 title="CYC Nepal Laghubitta Bittiya Sanstha Ltd - Sabhagriha Chowk, Pokhara"
+                address={contact.location.text}
+                directionsHref={contact.location.link}
               />
             </div>
           </div>
