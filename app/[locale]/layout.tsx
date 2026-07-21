@@ -49,6 +49,12 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* The hero image is served from Cloudinary; opening the connection
+            during HTML parse takes the DNS + TLS handshake off the LCP path. */}
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <SessionProvider>
            <NextIntlClientProvider messages={messages}>

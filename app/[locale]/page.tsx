@@ -18,10 +18,16 @@ type HomePageProps = {
 
 export default async function Home({ params }: HomePageProps) {
   const { locale = "en" } = await params;
-  const t = await getTranslations("Home");
-  const aboutCompanyInfo = await getAboutCompanyInfo();
-  const messageFromCeo = await getMessageFromCeo();
-  const rawContactDetails = await getContactDetails();
+
+  // These reads are independent. Awaited in series they stacked four MongoDB
+  // round trips (three here plus HeroSection's own) in front of the first byte,
+  // which also delayed discovery of the hero image URL.
+  const [t, aboutCompanyInfo, messageFromCeo, rawContactDetails] = await Promise.all([
+    getTranslations("Home"),
+    getAboutCompanyInfo(),
+    getMessageFromCeo(),
+    getContactDetails(),
+  ]);
 
   const aboutCompanyInfoPublic = aboutCompanyInfo
     ? {

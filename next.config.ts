@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
       },
     ],
+    formats: ["image/avif", "image/webp"],
+    // CMS-managed assets are replaced by publishing a new Cloudinary public_id,
+    // so a long TTL never serves a stale image.
+    minimumCacheTTL: 2678400, // 31 days
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+  },
+  experimental: {
+    optimizePackageImports: ["react-icons", "lucide-react"],
   },
   async headers() {
     return [

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import cloudinaryLoader, { isCloudinaryUrl } from "@/lib/cloudinary-loader";
 import type { AboutCompanyInfo } from "@/services/about-company-info-service";
 import { RichTextContent } from "@/components/public/RichTextContent";
 import { sanitizeRichText } from "@/lib/rich-text";
@@ -29,6 +30,8 @@ export function WelcomeSection({ aboutCompanyInfo }: WelcomeSectionProps) {
     locale === "ne"
       ? aboutCompanyInfo?.["description-ne"] || aboutCompanyInfo?.description || aboutCompanyInfo?.["description-en"] || ""
       : aboutCompanyInfo?.["description-en"] || aboutCompanyInfo?.description || aboutCompanyInfo?.["description-ne"] || "";
+
+  const aboutImageSrc = aboutCompanyInfo?.imageUrl || "/welcome-certificate.png";
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -84,13 +87,17 @@ export function WelcomeSection({ aboutCompanyInfo }: WelcomeSectionProps) {
               className={`relative mt-5 h-60 w-full max-w-130 overflow-hidden border-[5px] border-[#d6ab33] bg-white/8 shadow-[0_10px_30px_rgba(0,0,0,0.12)] translate-y-0 opacity-100 sm:mt-6 sm:h-80 sm:transition-all sm:duration-700 sm:delay-200 lg:mt-7 lg:h-98.75 ${visible ? "sm:translate-y-0 sm:opacity-100" : "sm:translate-y-6 sm:opacity-0"}`}
               aria-label="About company image"
             >
+              {/* Below the fold — `priority` here preloaded a 1.4MB asset at
+                  high priority in front of the hero, delaying the LCP image. */}
               <Image
-                src={aboutCompanyInfo?.imageUrl || "/welcome-certificate.png"}
+                src={aboutImageSrc}
                 alt={aboutCompanyInfo?.heading || "About company image"}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 520px, 520px"
+                quality={75}
+                loader={isCloudinaryUrl(aboutImageSrc) ? cloudinaryLoader : undefined}
                 className="object-cover"
-                priority
+                loading="lazy"
               />
               <div className="absolute inset-2 border border-white/60 bg-white/6" aria-hidden="true" />
             </div>
