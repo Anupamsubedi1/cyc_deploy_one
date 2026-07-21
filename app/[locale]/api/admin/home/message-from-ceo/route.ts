@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { HOME_CACHE_TAGS } from "@/services/home-cache";
 import { getAdminSessionFromRequestCookies } from "@/lib/admin-auth";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
 import {
@@ -77,6 +79,7 @@ export async function POST(request: NextRequest) {
       imagePublicId: data.imagePublicId?.trim() || "",
     });
 
+    revalidateTag(HOME_CACHE_TAGS.ceo, "max");
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
     console.error("Error creating message from CEO:", error);
@@ -138,6 +141,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    revalidateTag(HOME_CACHE_TAGS.ceo, "max");
     return NextResponse.json(message);
   } catch (error) {
     console.error("Error updating message from CEO:", error);
@@ -188,6 +192,8 @@ export async function DELETE(request: NextRequest) {
         { status: 500 },
       );
     }
+
+    revalidateTag(HOME_CACHE_TAGS.ceo, "max");
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { HOME_CACHE_TAGS } from "@/services/home-cache";
 import { getAdminSessionFromRequestCookies } from "@/lib/admin-auth";
 import {
   getAllHeroSections,
@@ -69,6 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     const hero = await createHeroSection(data);
+    revalidateTag(HOME_CACHE_TAGS.hero, "max");
     return NextResponse.json(hero, { status: 201 });
   } catch (error) {
     console.error("Error creating hero section:", error);
@@ -120,6 +123,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Hero section not found" }, { status: 404 });
     }
 
+    revalidateTag(HOME_CACHE_TAGS.hero, "max");
     return NextResponse.json(hero);
   } catch (error) {
     console.error("Error updating hero section:", error);
@@ -171,6 +175,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    revalidateTag(HOME_CACHE_TAGS.hero, "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting hero section:", error);

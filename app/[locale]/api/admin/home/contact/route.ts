@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { HOME_CACHE_TAGS } from "@/services/home-cache";
 import { getAdminSessionFromRequestCookies } from "@/lib/admin-auth";
 import {
   getAllContactDetails,
@@ -153,6 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     const contact = await createContactDetails(data);
+    revalidateTag(HOME_CACHE_TAGS.contact, "max");
     return NextResponse.json(contact, { status: 201 });
   } catch (error) {
     console.error("Error creating contact details:", error);
@@ -201,6 +204,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    revalidateTag(HOME_CACHE_TAGS.contact, "max");
     return NextResponse.json(contact);
   } catch (error) {
     console.error("Error updating contact details:", error);
@@ -235,6 +239,8 @@ export async function DELETE(request: NextRequest) {
         { status: 404 },
       );
     }
+
+    revalidateTag(HOME_CACHE_TAGS.contact, "max");
 
     return NextResponse.json({ success: true });
   } catch (error) {

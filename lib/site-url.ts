@@ -1,0 +1,16 @@
+/**
+ * Absolute origin used for canonical URLs, robots.txt and the sitemap.
+ *
+ * Set NEXT_PUBLIC_SITE_URL in the deployment environment. The Vercel-provided
+ * host is used as a fallback so preview deployments emit self-consistent URLs
+ * rather than pointing at production.
+ */
+export function getSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return explicit.replace(/\/$/, "");
+
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+
+  return "http://localhost:3000";
+}

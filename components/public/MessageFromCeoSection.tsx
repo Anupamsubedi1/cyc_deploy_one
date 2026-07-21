@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import cloudinaryLoader, { isCloudinaryUrl } from "@/lib/cloudinary-loader";
 import { RichTextContent } from "@/components/public/RichTextContent";
 import type { MessageFromCeo } from "@/services/message-from-ceo-service";
 import { useEffect, useRef, useState } from "react";
@@ -71,9 +73,18 @@ export function MessageFromCeoSection({
               style={{ background: "#f3f1ea" }}
             >
               {messageFromCeo?.imageUrl ? (
-                <img
+                /* Was a raw <img>: served the full-size Cloudinary original and,
+                   being eager by default, was preloaded in competition with the
+                   hero despite sitting below the fold. */
+                <Image
                   src={messageFromCeo.imageUrl}
                   alt={ceoName}
+                  width={640}
+                  height={800}
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  quality={75}
+                  loader={isCloudinaryUrl(messageFromCeo.imageUrl) ? cloudinaryLoader : undefined}
+                  loading="lazy"
                   className="block w-full h-auto transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               ) : (

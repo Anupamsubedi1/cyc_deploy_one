@@ -1,10 +1,11 @@
-import { getHeroSection } from "@/services/hero-service";
+import { getCachedHeroSection } from "@/services/home-cache";
 import HeroCarousel from "@/components/HeroCarousel";
 import { getLocale } from "next-intl/server";
 
 export async function HeroSection() {
-  const locale = await getLocale();
-  const hero = await getHeroSection();
+  // Cached: this read gates discovery of the LCP image, so an uncached round
+  // trip here pushes the hero download back by its full latency.
+  const [locale, hero] = await Promise.all([getLocale(), getCachedHeroSection()]);
 
   if (!hero || hero.slides.length === 0) {
     const isNepali = locale === "ne";

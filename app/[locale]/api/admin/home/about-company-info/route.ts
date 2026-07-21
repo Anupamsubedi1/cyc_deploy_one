@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { HOME_CACHE_TAGS } from "@/services/home-cache";
 import { getAdminSessionFromRequestCookies } from "@/lib/admin-auth";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
 import {
@@ -79,6 +81,7 @@ export async function POST(request: NextRequest) {
       imagePublicId: data.imagePublicId?.trim() || "",
     });
 
+    revalidateTag(HOME_CACHE_TAGS.about, "max");
     return NextResponse.json(aboutCompanyInfo, { status: 201 });
   } catch (error) {
     console.error("Error creating about company info:", error);
@@ -139,6 +142,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    revalidateTag(HOME_CACHE_TAGS.about, "max");
     return NextResponse.json(aboutCompanyInfo);
   } catch (error) {
     console.error("Error updating about company info:", error);
@@ -171,6 +175,8 @@ export async function DELETE(request: NextRequest) {
         { status: 404 },
       );
     }
+
+    revalidateTag(HOME_CACHE_TAGS.about, "max");
 
     return NextResponse.json({ success: true });
   } catch (error) {

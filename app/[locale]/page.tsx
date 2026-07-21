@@ -1,14 +1,16 @@
 import { HeroSection } from '@/components/HeroSection';
 import { WelcomeSection } from '@/components/WelcomeSection';
 import { Footer } from '@/components/Footer';
-import { getMessageFromCeo } from '@/services/message-from-ceo-service';
+import {
+  getCachedAboutCompanyInfo,
+  getCachedContactDetails,
+  getCachedMessageFromCeo,
+} from '@/services/home-cache';
 import ServicesSection from '@/components/ServicesSection';
-import { getAboutCompanyInfo } from '@/services/about-company-info-service';
 import NewsAndNotices from '@/components/NewsAndNotices';
 import ContactHome from '@/components/ContactHome';
 import { MessageFromCeoSection } from '@/components/public/MessageFromCeoSection';
 import { NoticePopup } from '@/components/public/NoticePopup';
-import { getContactDetails } from '@/services/contact-service';
 import { CompanyStatsSection } from '@/components/CompanyStatsSection';
 import { getTranslations } from "next-intl/server";
 
@@ -24,9 +26,9 @@ export default async function Home({ params }: HomePageProps) {
   // which also delayed discovery of the hero image URL.
   const [t, aboutCompanyInfo, messageFromCeo, rawContactDetails] = await Promise.all([
     getTranslations("Home"),
-    getAboutCompanyInfo(),
-    getMessageFromCeo(),
-    getContactDetails(),
+    getCachedAboutCompanyInfo(),
+    getCachedMessageFromCeo(),
+    getCachedContactDetails(),
   ]);
 
   const aboutCompanyInfoPublic = aboutCompanyInfo

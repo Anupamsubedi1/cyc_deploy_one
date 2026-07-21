@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { cloudinarySrc } from "@/lib/cloudinary-loader";
 
 type CarouselItem =
   | {
@@ -254,9 +255,16 @@ export default function NewsNoticesCarousel({ items, copy }: Props) {
                     {/* Image */}
                     <div style={{ position: "relative", height: isMobile ? 200 : 250, overflow: "hidden", flexShrink: 0 }}>
                       <img
-                        src={item.image || "/news-images/news-1.jpeg"}
+                        src={
+                          item.image
+                            ? cloudinarySrc(item.image, 800, 72)
+                            : "/news-images/news-1.jpeg"
+                        }
                         alt={item.title}
+                        width={800}
+                        height={isMobile ? 200 : 250}
                         loading="lazy"
+                        decoding="async"
                         style={{
                           width: "100%",
                           height: "100%",

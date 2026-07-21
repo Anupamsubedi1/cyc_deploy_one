@@ -474,9 +474,18 @@ export function CompanyStatsSection() {
                 className={`highlight-card ${visible ? "visible" : ""}`}>
 
                 <div className="icon-wrapper">
+                  {/* Explicitly lazy: these sit well below the fold, but a raw
+                      <img> is eager by default, so the preload scanner was
+                      fetching all six in parallel with the hero and starving
+                      the LCP image of bandwidth on slow connections.
+                      Intrinsic size is declared to keep the grid from shifting. */}
                   <img
                     src={item.imageUrl || "/companyhighlights/office_branch.png"}
                     alt={item.heading}
+                    width={64}
+                    height={64}
+                    loading="lazy"
+                    decoding="async"
                     className="service-icon-image"
                   />
                 </div>

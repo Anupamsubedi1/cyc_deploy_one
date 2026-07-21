@@ -5,11 +5,13 @@ export default function LoadingScreen() {
 		<div className="flex min-h-screen items-center justify-center bg-[#edf3f6] px-6">
 			<div className="flex flex-col items-center justify-center gap-4 text-center">
 				<div className="relative h-28 w-28 sm:h-36 sm:w-36">
+					{/* No `priority`: this placeholder is discarded as soon as the
+					    page streams in, so preloading it only took bandwidth from
+					    the hero image that determines LCP. */}
 					<Image
 						src="/images/cyc-logo-introduction.png"
 						alt="CYC logo"
 						fill
-						priority
 						sizes="(max-width: 640px) 112px, 144px"
 						className="object-contain"
 					/>

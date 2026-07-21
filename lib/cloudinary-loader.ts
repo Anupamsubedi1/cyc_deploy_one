@@ -26,6 +26,20 @@ export function isCloudinaryUrl(src: string | undefined | null): boolean {
  * Non-Cloudinary sources pass through untouched, so this is safe to hand to any
  * <Image> whose src may come from either the CMS or /public.
  */
+/**
+ * Single-URL variant for the raw <img> tags that can't be migrated to
+ * next/image yet (styled with inline objectFit, hover handlers, etc.).
+ * Returns a width-capped, format-negotiated URL instead of the original upload.
+ */
+export function cloudinarySrc(
+  src: string | undefined | null,
+  width: number,
+  quality: number | "auto" = "auto",
+): string {
+  if (!src) return "";
+  return cloudinaryLoader({ src, width, quality: quality === "auto" ? undefined : quality });
+}
+
 export default function cloudinaryLoader({
   src,
   width,
