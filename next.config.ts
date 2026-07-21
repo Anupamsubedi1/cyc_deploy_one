@@ -110,6 +110,20 @@ const nextConfig: NextConfig = {
       },
     ],
     formats: ["image/avif", "image/webp"],
+    /*
+      Next 16 only honours quality values listed here and defaults to [75], so
+      every `quality={…}` outside that set logs a warning and falls back. These
+      are the four values actually used, each chosen for what the image is:
+
+        80  hero slide 1 (the LCP image) and the stat icons — small or critical
+        75  portraits and the welcome figure — Next's own default
+        72  news card thumbnails
+        70  hero slides 2+, which are only ever seen after a rotation
+
+      Keep this list in sync when adding a new `quality` prop, or the image
+      silently renders at 75 instead.
+    */
+    qualities: [70, 72, 75, 80],
     // CMS-managed assets are replaced by publishing a new Cloudinary public_id,
     // so a long TTL never serves a stale image.
     minimumCacheTTL: 2678400, // 31 days

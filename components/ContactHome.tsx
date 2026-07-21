@@ -259,10 +259,10 @@ export default function ContactHome({ contactDetails, locale }: ContactHomeProps
           padding: 32px 24px;
           cursor: pointer;
           border: 1px solid rgba(0, 122, 142, 0.18);
-          background:
-            radial-gradient(circle at 30% 25%, rgba(168, 216, 185, 0.28), transparent 55%),
-            radial-gradient(circle at 75% 70%, rgba(0, 122, 142, 0.16), transparent 55%),
-            var(--beige);
+          /* Desaturated wash of the brand teal (--teal-mid). Reads as part of
+             the palette beside the pure-white info card instead of competing
+             with it, and keeps the address text at 6.7:1 — comfortably past AA. */
+          background: #EDF4F5;
           color: var(--text-dark);
           font: inherit;
           text-align: center;
