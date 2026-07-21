@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -5,6 +6,35 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+/**
+ * Builds a collision-proof public_id from an uploaded file's name.
+ *
+ * Every upload helper here used to pass `public_id: fileName.replace(ext, "")`
+ * verbatim, which made the Cloudinary asset id equal to whatever the uploader
+ * happened to name the file on their own machine. Phone and scanner exports are
+ * named things like `1.jpg`, `2.png`, `3.jpg`, so two people uploading their
+ * portrait both landed on `hero-sections/1` — and because Cloudinary treats a
+ * repeat upload to an existing public_id as an overwrite, the second silently
+ * replaced the first. Every DB row still pointing at that id then rendered the
+ * wrong person's face, and deleting any one of those records destroyed the
+ * single shared asset, 404-ing all the others.
+ *
+ * The random suffix makes each upload its own asset, so overwrites and
+ * cascading deletes are both impossible. Slugifying also removes the spaces and
+ * parentheses that previously had to survive URL-encoding round trips.
+ */
+function uniquePublicId(fileName: string): string {
+  const base =
+    fileName
+      .replace(/\.[^/.]+$/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "file";
+
+  return `${base}-${randomUUID().slice(0, 8)}`;
+}
 
 export async function deleteCloudinaryImage(publicId: string): Promise<void> {
   try {
@@ -54,7 +84,7 @@ export async function uploadCloudinaryFile(
       {
         resource_type: options.resourceType,
         folder: options.folder,
-        public_id: fileName.replace(/\.[^/.]+$/, ""),
+        public_id: uniquePublicId(fileName),
       },
       (error, result) => {
         if (error) {
@@ -84,7 +114,7 @@ export async function uploadPDFToCloudinary(
       {
         resource_type: "raw",
         folder: folder,
-        public_id: fileName.replace(/\.[^/.]+$/, ""),
+        public_id: uniquePublicId(fileName),
       },
       (error, result) => {
         if (error) {
@@ -125,7 +155,7 @@ export async function uploadApplicationFileToCloudinary(
       {
         resource_type: resourceType,
         folder: `job-applications/${vacancyId}`,
-        public_id: fileName.replace(/\.[^/.]+$/, ""),
+        public_id: uniquePublicId(fileName),
       },
       (error, result) => {
         if (error) {

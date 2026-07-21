@@ -28,9 +28,39 @@ const withNextIntl = createNextIntlPlugin();
  * Both of those Lighthouse rows are unscored diagnostics, so neither holds the
  * Best Practices score down.
  */
+const isDev = process.env.NODE_ENV !== "production";
+
+/*
+  React's development build calls eval() for debugging features — reconstructing
+  callstacks across environments, hot reload — and hard-fails under a CSP that
+  omits 'unsafe-eval'. Its production build never does, so the allowance is
+  scoped to dev and never reaches a deployed response. Dev also needs ws: for
+  the HMR socket, which would otherwise be blocked by connect-src.
+
+  NODE_ENV is "development" under `next dev` and "production" under
+  `next build` / `next start`, so this switches on its own.
+*/
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  ...(isDev ? ["'unsafe-eval'"] : []),
+  "https://maps.googleapis.com",
+  "https://maps.gstatic.com",
+  "https://www.google.com",
+  "https://www.gstatic.com",
+];
+
+const connectSrc = [
+  "'self'",
+  ...(isDev ? ["ws:", "wss:"] : []),
+  "https://res.cloudinary.com",
+  "https://api.cloudinary.com",
+  "https://maps.googleapis.com",
+];
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://www.google.com https://www.gstatic.com",
+  `script-src ${scriptSrc.join(" ")}`,
   // Tailwind, styled-jsx and next/image all emit inline style attributes.
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data: https://res.cloudinary.com https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com https://lh3.googleusercontent.com",
@@ -38,13 +68,14 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   // The Maps embed and any YouTube notices render in child frames.
   "frame-src 'self' https://www.google.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com",
-  "connect-src 'self' https://res.cloudinary.com https://api.cloudinary.com https://maps.googleapis.com",
+  `connect-src ${connectSrc.join(" ")}`,
   "object-src 'none'",
   "base-uri 'self'",
   // Google sign-in posts back to accounts.google.com.
   "form-action 'self' https://accounts.google.com",
   "frame-ancestors 'none'",
-  "upgrade-insecure-requests",
+  // Would rewrite http://localhost subresource requests to https in dev.
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [
